@@ -1,8 +1,9 @@
 const mongoose = require("mongoose");
 
 const gameSchema = new mongoose.Schema({
-  gameStartAtTime: { type: Date, required: true, unique: false },
-  invitationCode: { type: String, required: true, unique: true },
+  gameCreatedAtTime: { type: Date, required: true, unique: false },
+  roomID: { type: String, required: true, unique: true },
+  type: { type: String, default: "multi" },
   players: [
     {
       type: mongoose.Types.ObjectId,
@@ -16,7 +17,6 @@ const gameSchema = new mongoose.Schema({
       ref: "questions",
     },
   ],
-  roomSocketID: { type: String, required: true, unique: true },
 });
 
 module.exports = mongoose.models.games || mongoose.model("games", gameSchema);

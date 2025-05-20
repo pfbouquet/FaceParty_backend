@@ -11,6 +11,7 @@ var indexRouter = require("./routes/index");
 var usersRouter = require("./routes/users");
 var questionsRouter = require("./routes/questions");
 var playersRouter = require("./routes/players");
+var gameRouter = require("./routes/game");
 
 var app = express();
 
@@ -25,5 +26,6 @@ app.use("/", indexRouter);
 app.use("/users", usersRouter);
 app.use("/questions", questionsRouter);
 app.use("/players", playersRouter);
+app.use("/game", gameRouter);
 
 module.exports = app;

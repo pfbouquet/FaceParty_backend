@@ -1,17 +1,17 @@
+const { instrument } = require("@socket.io/admin-ui");
 const socketIo = require("socket.io");
 const sockets = require("./sockets");
-const { instrument } = require("@socket.io/admin-ui");
 
 module.exports = (server) => {
   const io = socketIo(server, {
     cors: {
       origin: [
         "https://admin.socket.io",
+        "http://localhost:3000",
         "http://192.168.100.181",
         "http://192.168.100.76",
       ],
-      allowedHeaders: ["Origin", "X-Requested-With", "Content-Type", "Accept"],
-      methods: ["GET", "POST", "PUT", "DELETE"],
+      credentials: true,
     },
   });
 
@@ -39,8 +39,10 @@ module.exports = (server) => {
     });
   });
 
+  // 🔐 Instrumentation pour l'interface admin
   instrument(io, {
     auth: false,
+    mode: "development",
   });
 
   return io;

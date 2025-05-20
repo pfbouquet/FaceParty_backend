@@ -6,7 +6,7 @@ const Game = require("../database/models/Game")
 
 /* GET questions of an idGame */
 router.get("/:gameID", function (req, res) {
-  Game.findOne({ _id: req.params.gameID }).populate("questions").then((data) => {
+  Games.findOne({ _id: req.params.gameID }).populate("questions").then((data) => {
 
     if (data) {
       res.json({

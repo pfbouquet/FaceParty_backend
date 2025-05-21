@@ -25,29 +25,33 @@ async function connectPlayerToRoom(io, userSocketID, roomID) {
   const playerSocket = io.sockets.sockets.get(userSocketID);
   if (playerSocket) {
     playerSocket.join(roomID);
-    console.log(`Socket ${playerSocket} joined room ${roomID}`);
 
     // Notify successfull join of the room
     playerSocket.emit("joined-success", {
-      message: "You have successfully joined the room!",
+      message: `You have successfully joined the room ${roomID}`,
       room: roomID,
     });
 
     // Notify other sockets in the room
-    playerSocket.to(roomID).emit("player-joined", {
-      socketId: playerSocket.id,
-      room: roomID,
-    });
+    // Prepare room information to be shared to the room.
+    let gameData = await Game.findOne({ roomID: roomID }).populate("players");
+    let partyStatus = {
+      gameID: gameData._id,
+      roomID: gameData.roomID,
+      nbRound: gameData.nbRound,
+      players: gameData.players.map((p) => ({
+        playerID: p._id,
+        playerName: p.playerName,
+        isAdmin: p.isAdmin,
+      })),
+    };
+    console.log(partyStatus);
 
-    // (Optional) send the current players to the one who just joined
-    const socketsInRoom = await io.in(roomID).fetchSockets();
-    const socketIds = socketsInRoom.map((s) => s.id);
-
-    playerSocket.emit("room-state", {
-      room: roomID,
-      currentPlayers: socketIds,
+    io.to(roomID).emit("game-participant-update", {
+      type: "player-joined",
+      message: "New player has joined the roomID party",
+      partyStatus: partyStatus,
     });
-    console.log("Sockets currently in room:", socketIds);
   } else {
     console.warn(`Socket with ID ${playerSocket} not found`);
   }

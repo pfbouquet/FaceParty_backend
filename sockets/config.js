@@ -10,6 +10,8 @@ module.exports = (server) => {
         "http://localhost:3000",
         "http://192.168.100.181",
         "http://192.168.100.76",
+        "http://192.168.100.66",
+        "http://192.168.100.82",
       ],
       credentials: true,
     },

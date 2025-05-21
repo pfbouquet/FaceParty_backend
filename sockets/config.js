@@ -5,18 +5,16 @@ const sockets = require("./sockets");
 module.exports = (server) => {
   const io = socketIo(server, {
     cors: {
-      origin: [
-        "https://admin.socket.io",
-        "http://localhost:3000",
-        "http://192.168.100.181",
-        "http://192.168.100.76",
-      ],
+      origin: ["https://admin.socket.io", "http://localhost:3000", "http://192.168.100.181", "http://192.168.100.76"],
       credentials: true,
     },
   });
 
   io.on("connection", (socket) => {
     console.log("Client connected", socket.id);
+    // Emit the game ID to all clients
+    io.emit("game-id", "682c986c3faa881ff6c9abe8");
+
     socket.on("disconnect", () => {
       console.log("Client disconnected", socket.id);
     });

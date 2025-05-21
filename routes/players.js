@@ -9,6 +9,8 @@ router.get("/:gameID", (req, res) => {
     .populate("players")
     .then((data) => {
       if (data) {
+        
+
         res.json({ result: true, players: data.players });
       } else {
         res.json({ result: false, error: "pas de guaiême" });

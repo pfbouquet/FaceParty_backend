@@ -2,7 +2,7 @@ var express = require("express");
 var router = express.Router();
 
 const Questions = require("../database/models/Questions");
-const Game = require("../database/models/Games");
+const Games = require("../database/models/Games");
 
 /* GET questions of an idGame */
 router.get("/:gameID", function (req, res) {

@@ -53,13 +53,50 @@ async function connectPlayerToRoom(io, userSocketID, roomID) {
   }
 }
 
-// POST	game/create
-router.post("/create", async function (req, res, next) {
-  console.log("Route reached: /game/create");
-  if (!checkBody(req.body, ["adminSocketID"])) {
+// POST games/join
+router.post("/join", async function (req, res, next) {
+  if (!checkBody(req.body, ["playerSocketID", "isAdmin", "roomID"])) {
     res.json({ result: false, error: "Missing or empty fields" });
     return;
   }
+  // Find the party
+  let gameData = await Game.findOne({ roomID: req.body.roomID });
+  if (!gameData) {
+    res.json({ result: false, error: "Game not found" });
+    return;
+  }
+
+  // Create player
+  let newPlayer = new Player({
+    gameID: gameData._id,
+    isAdmin: req.body.isAdmin,
+    socketID: req.body.playerSocketID,
+    playerName: "anonymous",
+  });
+  let playerData = await newPlayer.save();
+
+  // Add player in related game in DB
+  gameData.players.push(playerData._id);
+  await gameData.save();
+
+  // Connect player socket to game room
+  const io = req.app.get("io");
+  connectPlayerToRoom(io, playerData.socketID, gameData.roomID);
+
+  // Res
+  res.json({
+    result: true,
+    player: {
+      playerID: playerData._id,
+      isAdmin: playerData.isAdmin,
+      playerName: playerData.playerName,
+    },
+  });
+});
+
+// POST	games/create
+router.post("/create", async function (req, res, next) {
+  console.log("Route reached: /game/create");
 
   try {
     let roomID = await getNewRoomID();
@@ -69,29 +106,12 @@ router.post("/create", async function (req, res, next) {
       roomID: roomID,
       type: "multi",
       nbRound: 10,
-      roomSocketID: "roomSocketID",
     });
 
     if (req.body.nbRound) {
       newGame.nbRound = req.body.nbRound;
     }
     let gameData = await newGame.save();
-
-    // Create player
-    let newPlayer = new Player({
-      gameID: gameData._id,
-      isAdmin: true,
-      socketID: req.body.adminSocketID,
-    });
-    let playerData = await newPlayer.save();
-
-    // Add player in related game in DB
-    gameData.players.push(playerData._id);
-    await gameData.save();
-
-    // Connect player socket to game room
-    const io = req.app.get("io");
-    connectPlayerToRoom(io, playerData.socketID, gameData.roomID);
 
     // Res
     res.json({
@@ -100,10 +120,6 @@ router.post("/create", async function (req, res, next) {
       game: {
         gameID: gameData._id,
         roomID: gameData.roomID,
-      },
-      player: {
-        playerID: playerData._id,
-        playerSocketID: playerData.socketID,
       },
     });
   } catch (error) {

@@ -45,7 +45,6 @@ async function connectPlayerToRoom(io, userSocketID, roomID) {
         isAdmin: p.isAdmin,
       })),
     };
-    console.log(partyStatus);
 
     io.to(roomID).emit("game-participant-update", {
       type: "player-joined",
@@ -59,13 +58,17 @@ async function connectPlayerToRoom(io, userSocketID, roomID) {
 
 // POST games/join
 router.post("/join", async function (req, res, next) {
+  console.log("Route reached: /game/join");
   if (!checkBody(req.body, ["playerSocketID", "isAdmin", "roomID"])) {
+    console.log("Missing some field in body.");
+    console.log(req.body);
     res.json({ result: false, error: "Missing or empty fields" });
     return;
   }
   // Find the party
   let gameData = await Game.findOne({ roomID: req.body.roomID });
   if (!gameData) {
+    console.log("Game not found");
     res.json({ result: false, error: "Game not found" });
     return;
   }
@@ -79,12 +82,23 @@ router.post("/join", async function (req, res, next) {
   });
   let playerData = await newPlayer.save();
 
+  if (!playerData) {
+    console.log("Player couldn't be created");
+    res.json({ result: false, error: "Player not created" });
+    return;
+  }
+
   // Add player in related game in DB
   gameData.players.push(playerData._id);
-  await gameData.save();
+  let data = await gameData.save();
+  if (!data) {
+    console.log("Player couldn't be added to the game");
+    res.json({ result: false, error: "Player not added to game" });
+    return;
+  }
 
   // Connect player socket to game room
-  const io = req.app.get("io");
+  const io = await req.app.get("io");
   connectPlayerToRoom(io, playerData.socketID, gameData.roomID);
 
   // Res
@@ -94,6 +108,11 @@ router.post("/join", async function (req, res, next) {
       playerID: playerData._id,
       isAdmin: playerData.isAdmin,
       playerName: playerData.playerName,
+    },
+    game: {
+      gameID: gameData.gameID,
+      roomID: gameData.roomID,
+      nbRound: gameData.nbRound,
     },
   });
 });
@@ -124,6 +143,7 @@ router.post("/create", async function (req, res, next) {
       game: {
         gameID: gameData._id,
         roomID: gameData.roomID,
+        nbRound: gameData.nbRound,
       },
     });
   } catch (error) {

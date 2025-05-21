@@ -5,14 +5,7 @@ const sockets = require("./sockets");
 module.exports = (server) => {
   const io = socketIo(server, {
     cors: {
-      origin: [
-        "https://admin.socket.io",
-        "http://localhost:3000",
-        "http://192.168.100.181",
-        "http://192.168.100.76",
-        "http://192.168.100.66",
-        "http://192.168.100.82",
-      ],
+      origin: [process.env.EXPO_PUBLIC_BACKEND_URL, process.env.FRONTEND_URL],
       credentials: true,
     },
   });

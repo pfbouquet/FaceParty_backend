@@ -25,41 +25,82 @@ async function connectPlayerToRoom(io, userSocketID, roomID) {
   const playerSocket = io.sockets.sockets.get(userSocketID);
   if (playerSocket) {
     playerSocket.join(roomID);
-    console.log(`Socket ${playerSocket} joined room ${roomID}`);
 
     // Notify successfull join of the room
     playerSocket.emit("joined-success", {
-      message: "You have successfully joined the room!",
+      message: `You have successfully joined the room ${roomID}`,
       room: roomID,
     });
 
     // Notify other sockets in the room
-    playerSocket.to(roomID).emit("player-joined", {
-      socketId: playerSocket.id,
-      room: roomID,
-    });
+    // Prepare room information to be shared to the room.
+    let gameData = await Game.findOne({ roomID: roomID }).populate("players");
+    let partyStatus = {
+      gameID: gameData._id,
+      roomID: gameData.roomID,
+      nbRound: gameData.nbRound,
+      players: gameData.players.map((p) => ({
+        playerID: p._id,
+        playerName: p.playerName,
+        isAdmin: p.isAdmin,
+      })),
+    };
+    console.log(partyStatus);
 
-    // (Optional) send the current players to the one who just joined
-    const socketsInRoom = await io.in(roomID).fetchSockets();
-    const socketIds = socketsInRoom.map((s) => s.id);
-
-    playerSocket.emit("room-state", {
-      room: roomID,
-      currentPlayers: socketIds,
+    io.to(roomID).emit("game-participant-update", {
+      type: "player-joined",
+      message: "New player has joined the roomID party",
+      partyStatus: partyStatus,
     });
-    console.log("Sockets currently in room:", socketIds);
   } else {
     console.warn(`Socket with ID ${playerSocket} not found`);
   }
 }
 
-// POST	game/create
-router.post("/create", async function (req, res, next) {
-  console.log("Route reached: /game/create");
-  if (!checkBody(req.body, ["adminSocketID"])) {
+// POST games/join
+router.post("/join", async function (req, res, next) {
+  if (!checkBody(req.body, ["playerSocketID", "isAdmin", "roomID"])) {
     res.json({ result: false, error: "Missing or empty fields" });
     return;
   }
+  // Find the party
+  let gameData = await Game.findOne({ roomID: req.body.roomID });
+  if (!gameData) {
+    res.json({ result: false, error: "Game not found" });
+    return;
+  }
+
+  // Create player
+  let newPlayer = new Player({
+    gameID: gameData._id,
+    isAdmin: req.body.isAdmin,
+    socketID: req.body.playerSocketID,
+    playerName: "anonymous",
+  });
+  let playerData = await newPlayer.save();
+
+  // Add player in related game in DB
+  gameData.players.push(playerData._id);
+  await gameData.save();
+
+  // Connect player socket to game room
+  const io = req.app.get("io");
+  connectPlayerToRoom(io, playerData.socketID, gameData.roomID);
+
+  // Res
+  res.json({
+    result: true,
+    player: {
+      playerID: playerData._id,
+      isAdmin: playerData.isAdmin,
+      playerName: playerData.playerName,
+    },
+  });
+});
+
+// POST	games/create
+router.post("/create", async function (req, res, next) {
+  console.log("Route reached: /game/create");
 
   try {
     let roomID = await getNewRoomID();
@@ -69,29 +110,12 @@ router.post("/create", async function (req, res, next) {
       roomID: roomID,
       type: "multi",
       nbRound: 10,
-      roomSocketID: "roomSocketID",
     });
 
     if (req.body.nbRound) {
       newGame.nbRound = req.body.nbRound;
     }
     let gameData = await newGame.save();
-
-    // Create player
-    let newPlayer = new Player({
-      gameID: gameData._id,
-      isAdmin: true,
-      socketID: req.body.adminSocketID,
-    });
-    let playerData = await newPlayer.save();
-
-    // Add player in related game in DB
-    gameData.players.push(playerData._id);
-    await gameData.save();
-
-    // Connect player socket to game room
-    const io = req.app.get("io");
-    connectPlayerToRoom(io, playerData.socketID, gameData.roomID);
 
     // Res
     res.json({
@@ -100,10 +124,6 @@ router.post("/create", async function (req, res, next) {
       game: {
         gameID: gameData._id,
         roomID: gameData.roomID,
-      },
-      player: {
-        playerID: playerData._id,
-        playerSocketID: playerData.socketID,
       },
     });
   } catch (error) {

@@ -58,7 +58,7 @@ async function connectPlayerToRoom(io, userSocketID, roomID) {
 
 // POST games/join
 router.post("/join", async function (req, res, next) {
-  console.log("Route reached: /game/join");
+  console.log("Route reached: /games/join");
   if (!checkBody(req.body, ["playerSocketID", "isAdmin", "roomID"])) {
     console.log("Missing some field in body.");
     console.log(req.body);
@@ -119,7 +119,7 @@ router.post("/join", async function (req, res, next) {
 
 // POST	games/create
 router.post("/create", async function (req, res, next) {
-  console.log("Route reached: /game/create");
+  console.log("Route reached: /games/create");
 
   try {
     let roomID = await getNewRoomID();

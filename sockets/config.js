@@ -7,8 +7,8 @@ module.exports = (server) => {
     cors: {
       origin: [
         "https://admin.socket.io",
-        "http://192.168.100.181",
-        "http://192.168.100.76",
+        process.env.BACKEND_URL,
+        process.env.FRONTEND_URL,
       ],
       allowedHeaders: ["Origin", "X-Requested-With", "Content-Type", "Accept"],
       methods: ["GET", "POST", "PUT", "DELETE"],

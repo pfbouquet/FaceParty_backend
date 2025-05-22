@@ -12,6 +12,9 @@ module.exports = (server) => {
 
   io.on("connection", (socket) => {
     console.log("Client connected", socket.id);
+    // Emit the game ID to all clients
+    io.emit("game-id", "682c986c3faa881ff6c9abe8");
+
     socket.on("disconnect", () => {
       console.log("Client disconnected", socket.id);
     });

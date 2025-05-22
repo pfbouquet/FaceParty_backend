@@ -62,3 +62,7 @@ typings/
 
 # mac
 .DS_Store
+
+# tmp folder
+tmp/*
+!*/.gitkeep

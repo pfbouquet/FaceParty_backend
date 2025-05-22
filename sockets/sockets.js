@@ -4,6 +4,12 @@ const sockets = async (io, socket) => {
             io.emit("game-cycle", data)
         }, 500);
     })
+
+    socket.on("playerUpdate", (roomID) => {
+        setTimeout(() => {
+            io.to(roomID).emit("playerUpdate")
+        }, 500);
+    })
 };
 
 module.exports = sockets;

@@ -24,7 +24,8 @@ const getMorph = async (image1_path, image2_path) => {
   });
   const data = await response.json();
   if (!data || !data.result) {
-    return { result: false, error: "No data; Problem uncontered" };
+    console.log(data);
+    return { result: false, error: "No data; Problem uncontered", data: data };
   }
   return data;
 };

@@ -22,9 +22,10 @@ const getMorph = async (image1_path, image2_path) => {
     body: form,
     headers: form.getHeaders(),
   });
-  console.log("ici");
   const data = await response.json();
-  console.log("data", data);
+  if (!data || !data.result) {
+    return { result: false, error: "No data; Problem uncontered" };
+  }
   return data;
 };
 

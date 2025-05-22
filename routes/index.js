@@ -10,9 +10,8 @@ router.get("/", function (req, res, next) {
 /* GET home page. */
 router.get("/testmorph", async function (req, res, next) {
   let data = await getTestMorph();
-  console.log("data", data);
   if (!data || !data.result) {
-    return res.json({ result: false, error: "No data" });
+    return res.json({ result: false, error: "No data; Problem uncontered" });
   }
   res.json({ result: true, data: data });
 });

@@ -64,5 +64,5 @@ typings/
 .DS_Store
 
 # tmp folder
-tmp/*
+tmp/*.*
 !*/.gitkeep

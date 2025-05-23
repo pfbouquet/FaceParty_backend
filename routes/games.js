@@ -131,7 +131,7 @@ router.post("/create", async function (req, res, next) {
       gameCreatedAtTime: Date.now(),
       roomID: roomID,
       type: "multi",
-      nbRound: 10,
+      nbRound: 3, // Default value to 3 to ease tests
     });
 
     if (req.body.nbRound) {
@@ -151,7 +151,9 @@ router.post("/create", async function (req, res, next) {
     });
   } catch (error) {
     console.error("Error creating game or player:", error);
-    res.status(500).json({ result: false, error: "Server error", details: error.message });
+    res
+      .status(500)
+      .json({ result: false, error: "Server error", details: error.message });
   }
 });
 

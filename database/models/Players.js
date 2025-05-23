@@ -5,7 +5,7 @@ const schema = new mongoose.Schema({
   playerName: String,
   user: { type: mongoose.Types.ObjectId, ref: "users" },
   isAdmin: Boolean,
-  selfieFilePath: String,
+  selfieFilePath: String, // ex: 87hdhe83b.jpg
   scoreHistory: Number,
   score: Number,
   rank: Number,

@@ -3,10 +3,10 @@ const Game = require("../database/models/Games");
 const Question = require("../database/models/Questions");
 const { getMorph } = require("./getMorph");
 
-async function checkGameHealth(gameId) {
-  console.log("handleStartGame called with gameId:", gameId);
+async function checkGameHealth(roomID) {
+  console.log("handleStartGame called with roomID:", roomID);
   // get game data
-  const game = await Game.findById(gameId).populate("players");
+  const game = await Game.findOne({ roomID: roomID }).populate("players");
   if (!game) {
     return { result: false, error: "Game not found" };
   }
@@ -145,19 +145,15 @@ async function getMorphURL(p1SelfieFilePath, p2SelfieFilePath) {
   return morphData.morph_url;
 }
 
-async function handleStartGame(gameId) {
+async function handleStartGame(roomID) {
   // Get and check game
-  const game = await checkGameHealth(gameId);
+  const game = await checkGameHealth(roomID);
   const playerNames = game.players.map((p) => p.playerName);
 
   // Clean out old questions
-  await Question.deleteMany({ gameId: gameId });
-  let gameData = await Game.findById(gameId);
-  if (!gameData) {
-    return { result: false, error: "Game not found" };
-  }
-  gameData.questions = [];
-  await gameData.save();
+  await Question.deleteMany({ gameId: game.gameId });
+  game.questions = [];
+  await game.save();
 
   // Pick unique questions
   let questions = await initQuestions(game);

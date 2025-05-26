@@ -19,7 +19,7 @@ router.get("/testmorph", async function (req, res, next) {
 /* GET /tests/teststart */
 router.get("/teststart", async function (req, res, next) {
   console.log("Route reached /tests/teststart");
-  let questions = await handleStartGame("682edde9d3fb403aa0bd3305"); // ID of the TEST game
+  let questions = await handleStartGame("TEST");
   res.json({ result: true, startData: questions });
 });
 

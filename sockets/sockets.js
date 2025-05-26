@@ -1,69 +1,70 @@
 const sockets = async (io, socket) => {
+  // MàJ du nom du joueur
+  socket.on("playerUpdate", (roomID) => {
+    setTimeout(() => {
+      io.to(roomID).emit("playerUpdate");
+    }, 500);
+  });
 
-    // MàJ du nom du joueur
-    socket.on("playerUpdate", (roomID) => {
-        setTimeout(() => {
-            io.to(roomID).emit("playerUpdate")
-        }, 500);
-    })
+  // question en dur qui sera remplacé plus tard
+  socket.on("question", (data) => {
+    setTimeout(() => {
+      io.emit("questionText", data);
+    }, 500);
+  });
 
-    // question en dur qui sera remplacé plus tard
-    socket.on("question", (data) => {
-        setTimeout(() => {
-            io.emit("questionText", data)
-        }, 500);
-    })
+  // lancement de la partie par l'admin
+  socket.on("start-game", (roomID) => {
+    setTimeout(() => {
+      io.to(roomID).emit("goCountdown");
+    }, 500);
+  });
 
-    // lancement de la partie par l'admin
-    socket.on("start-game", (roomID) => {
-        setTimeout(() => {
-            io.to(roomID).emit("goCountdown")
-        }, 500);
-    })
+  // passage d'un écran Question à un écran ScroeBoard par l'admin
+  socket.on("game-cycle", (data) => {
+    setTimeout(() => {
+      if (data.type == "go-scoreboard") {
+        io.to(data.roomID).emit("game-cycle", { type: "go-scoreboard" });
+      } /* passage d'un écran Question à un écran ScroeBoard par l'admin*/
+      if (data.type == "go-startsound") {
+        io.to(data.roomID).emit("game-cycle", { type: "go-startsound" });
+      } /* passage d'un écran Question à un écran ScroeBoard par l'admin*/
+    }, 500);
+  });
 
-    // passage d'un écran Question à un écran ScroeBoard par l'admin
-    socket.on("game-cycle", (data) => {
-        setTimeout(() => {
-            if (data.type == 'go-scoreboard') {
-            io.to(data.roomID).emit("game-cycle", {type : 'go-scoreboard'})}
-        }, 500);
-    })
+  //lancement de la question à la fin du countdown
+  socket.on("endCountdown", (roomID) => {
+    setTimeout(() => {
+      io.to(roomID).emit("nextQuestion"); // pour la navigation côté client
+    }, 500);
+  });
 
-    //lancement de la question à la fin du countdown
-    socket.on("endCountdown", (roomID) => {
-        setTimeout(() => {
-            io.to(roomID).emit("nextQuestion"); // pour la navigation côté client
-        }, 500);
-    })
-
-    // socket permettant de stocker en dur une question test
-    socket.on("get-question", (roomID) => {
-        setTimeout(() => {
-            io.to(roomID).emit("questionText", {
-                type: "question",
-                payload: {
-                    questionID: "123456789",
-                    imageURL:
-                        "https://res.cloudinary.com/dat8yzztd/image/upload/v1747919107/picture1_ybfkmw.png",
-                    goodAnswer: ["Allan", "Pierre-François"],
-                    possibleAnswers: [
-                        ["Allan", "Marc", "José"],
-                        ["Titi", "Jean-Claude", "Pierre-François"],
-                    ],
-                    index: 2,
-                    askedAtTime: Date.now(),
-                    answerHistory: [
-                        {
-                            playerID: "P1",
-                            answer: ["José", "Titi"],
-                            answeredAtTime: Date.now(),
-                        },
-                    ],
-                },
-            });
-        }, 500);
-    }
-    )
+  // socket permettant de stocker en dur une question test
+  socket.on("get-question", (roomID) => {
+    setTimeout(() => {
+      io.to(roomID).emit("questionText", {
+        type: "question",
+        payload: {
+          questionID: "123456789",
+          imageURL: "https://res.cloudinary.com/dat8yzztd/image/upload/v1747919107/picture1_ybfkmw.png",
+          goodAnswer: ["Allan", "Pierre-François"],
+          possibleAnswers: [
+            ["Allan", "Marc", "José"],
+            ["Titi", "Jean-Claude", "Pierre-François"],
+          ],
+          index: 2,
+          askedAtTime: Date.now(),
+          answerHistory: [
+            {
+              playerID: "P1",
+              answer: ["José", "Titi"],
+              answeredAtTime: Date.now(),
+            },
+          ],
+        },
+      });
+    }, 500);
+  });
 };
 
 module.exports = sockets;

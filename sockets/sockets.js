@@ -41,15 +41,11 @@ const sockets = async (io, socket) => {
       if (data.type == "go-startsound") {
         io.to(data.roomID).emit("game-cycle", { type: "go-startsound" });
       } /* passage d'un écran Question à un écran ScroeBoard par l'admin*/
-    }, 500);
-  })
-
-  //lancement de la question à la fin du countdown
-  socket.on("end-ready-for-question-countdown", (roomID) => {
-    setTimeout(() => {
-      io.to(roomID).emit("game-cycle", {
-        type: "go-question",
-      });
+      if (data.type == "go-question") {
+        io.to(data.roomID).emit("game-cycle", {
+          type: "go-question",
+        }); //lancement de la question à la fin du countdown
+      }
     }, 500);
   });
 
@@ -64,33 +60,30 @@ const sockets = async (io, socket) => {
     }, 500);
   });
 
-    // socket permettant de stocker en dur une question test
-    socket.on("get-question", (roomID) => {
-        setTimeout(() => {
-            io.to(roomID).emit("questionText", {
-                type: "question",
-                payload: {
-                    questionID: "123456789",
-                    imageURL:
-                        "https://res.cloudinary.com/dat8yzztd/image/upload/v1747919107/picture1_ybfkmw.png",
-                    goodAnswers: ["Allan", "Pierre-François"],
-                    possibleAnswers: [
-                        "Allan", "Marc", "José", "Pierre-François"
-                    ],
-                    index: 2,
-                    askedAtTime: Date.now(),
-                    answerHistory: [
-                        {
-                            playerID: "P1",
-                            answer: ["José", "Titi"],
-                            answeredAtTime: Date.now(),
-                        },
-                    ],
-                },
-            });
-        }, 500);
-    }
-    )
+  // socket permettant de stocker en dur une question test
+  socket.on("get-question", (roomID) => {
+    setTimeout(() => {
+      io.to(roomID).emit("questionText", {
+        type: "question",
+        payload: {
+          questionID: "123456789",
+          imageURL:
+            "https://res.cloudinary.com/dat8yzztd/image/upload/v1747919107/picture1_ybfkmw.png",
+          goodAnswers: ["Allan", "Pierre-François"],
+          possibleAnswers: ["Allan", "Marc", "José", "Pierre-François"],
+          index: 2,
+          askedAtTime: Date.now(),
+          answerHistory: [
+            {
+              playerID: "P1",
+              answer: ["José", "Titi"],
+              answeredAtTime: Date.now(),
+            },
+          ],
+        },
+      });
+    }, 500);
+  });
 };
 
 module.exports = sockets;

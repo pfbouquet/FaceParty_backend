@@ -1,38 +1,54 @@
 const { handleStartGame } = require("../services/gameService.js");
 
 const sockets = async (io, socket) => {
-  // MàJ du nom du joueur
+  ////////////////////////////////////////////////////////
+  ////////////////////  lobby events   ///////////////////
+  ////////////////////////////////////////////////////////
+
   socket.on("playerUpdate", (roomID) => {
     setTimeout(() => {
       io.to(roomID).emit("playerUpdate");
     }, 500);
   });
 
-  // question en dur qui sera remplacé plus tard
-  socket.on("question", (data) => {
-    setTimeout(() => {
-      io.emit("questionText", data);
-    }, 500);
-  });
+  ////////////////////////////////////////////////////////
+  //////////////////  game-cycle phase   /////////////////
+  ////////////////////////////////////////////////////////
 
   // lancement de la partie par l'admin
   socket.on("start-game", (roomID) => {
     setTimeout(async () => {
+      // Communicate entry in game preparation
       io.to(roomID).emit("game-preparation");
-      let questions = await handleStartGame("TEST"); // TODO: remplacer TEST par roomID
+      // Prepare the game
+      let questions = await handleStartGame(roomID);
+      // Communicate that the game is ready, sending the first question
       if (questions) {
         io.to(roomID).emit("game-cycle", {
           type: "next-question",
-          payload: questions[0], // envoi de la 1ère question
+          payload: questions[0],
         });
       }
     }, 500);
   });
 
   //lancement de la question à la fin du countdown
-  socket.on("endCountdown", (roomID) => {
+  socket.on("end-ready-for-question-countdown", (roomID) => {
     setTimeout(() => {
-      io.to(roomID).emit("nextQuestion"); // pour la navigation côté client
+      io.to(roomID).emit("game-cycle", {
+        type: "go-question",
+      });
+    }, 500);
+  });
+
+  ////////////////////////////////////////////////////////
+  //////////////////////   TESTS   ///////////////////////
+  ////////////////////////////////////////////////////////
+
+  // question en dur qui sera remplacé plus tard
+  socket.on("question", (data) => {
+    setTimeout(() => {
+      io.emit("questionText", data);
     }, 500);
   });
 

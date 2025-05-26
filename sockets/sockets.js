@@ -39,8 +39,7 @@ const sockets = async (io, socket) => {
                         "https://res.cloudinary.com/dat8yzztd/image/upload/v1747919107/picture1_ybfkmw.png",
                     goodAnswer: ["Allan", "Pierre-François"],
                     possibleAnswers: [
-                        ["Allan", "Marc", "José", "Pierre-François"],
-                        ["Titi", "Jean-Claude", "Pierre-François"],
+                        "Allan", "Marc", "José", "Pierre-François"
                     ],
                     index: 2,
                     askedAtTime: Date.now(),

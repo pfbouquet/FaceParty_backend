@@ -1,4 +1,6 @@
 const { handleStartGame } = require("../services/gameService.js");
+const Game = require("../database/models/Games");
+const Questions = require("../database/models/Questions");
 
 const sockets = async (io, socket) => {
   ////////////////////////////////////////////////////////
@@ -45,6 +47,18 @@ const sockets = async (io, socket) => {
         io.to(data.roomID).emit("game-cycle", {
           type: "go-question",
         }); //lancement de la question à la fin du countdown
+      }
+      if (data.type == "get-next-question") {
+        Questions.findOne({
+          gameId: data.gameID,
+          index: data.currentQuestionIndex + 1,
+        }).then((nextQuestion) => {
+          console.log("Next-question:", nextQuestion);
+          io.to(data.roomID).emit("game-cycle", {
+            type: "next-question",
+            payload: nextQuestion,
+          }); // send next question to all players
+        });
       }
     }, 500);
   });

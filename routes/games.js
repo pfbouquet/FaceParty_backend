@@ -82,6 +82,9 @@ router.post("/join", async function (req, res, next) {
     socketID: req.body.playerSocketID,
     playerName: "anonymous",
     selfieFilePath: "pathTest",
+    scoreHistory: 0,
+    score: 0,
+    rank: 0,
   });
   let playerData = await newPlayer.save();
 

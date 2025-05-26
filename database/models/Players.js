@@ -6,7 +6,7 @@ const schema = new mongoose.Schema({
   user: { type: mongoose.Types.ObjectId, ref: "users" },
   isAdmin: Boolean,
   selfieFilePath: String, // ex: 87hdhe83b.jpg
-  scoreHistory: Number,
+  scoreHistory: [Number],
   score: Number,
   rank: Number,
   socketID: { type: String, required: true },

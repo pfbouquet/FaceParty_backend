@@ -52,4 +52,43 @@ router.put("/updateName", async (req, res) => {
   }
 });
 
+/* Add score to player (increment in score and push score of each question in scoreHistory*/
+router.put("/addScore", async (req, res) => {
+  const { playerID, score } = req.body;
+
+  if (!playerID || score === undefined) {
+    return res.json({
+      result: false,
+      message: "Missing playerID or score",
+    });
+  }
+
+  try {
+    await Player.updateOne({ _id: playerID }, { $push: { scoreHistory: [score] } });
+    const updateResult = await Player.updateOne(
+      { _id: playerID },
+      { $inc: { score: score } }
+    );
+
+    if (updateResult.modifiedCount === 1) {
+      return res.json({
+        result: true,
+        message: `Score added to player ${playerID}`,
+      });
+    } else {
+      return res.json({
+        result: false,
+        message: "Score NOT added",
+      });
+    }
+  } catch (error) {
+    return res.json({
+      result: false,
+      message: "Error adding score",
+      error: error.message,
+    });
+  }
+});
+
+
 module.exports = router;

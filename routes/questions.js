@@ -27,7 +27,7 @@ router.get("/:gameID", function (req, res) {
     });
 });
 
-/* POST answers of a questionID */ // ====>>> à finir une fois la BDD test propre en place
+/* POST answers of a questionID */ // ====>>> à finir pour aller plus loin afin de savoir qui a bon ou faux
 router.post("/answer", function (req, res) {
   Questions.updateOne(
     { _id: req.body.questionID, playerID: req.body.playerID },

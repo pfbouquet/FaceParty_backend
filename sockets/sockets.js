@@ -32,6 +32,17 @@ const sockets = async (io, socket) => {
     }, 500);
   });
 
+  // passage d'un écran Question à un écran ScroeBoard par l'admin
+  socket.on("game-cycle", (data) => {
+    setTimeout(() => {
+      if (data.type == "go-scoreboard") {
+        io.to(data.roomID).emit("game-cycle", { type: "go-scoreboard" });
+      } /* passage d'un écran Question à un écran ScroeBoard par l'admin*/
+      if (data.type == "go-startsound") {
+        io.to(data.roomID).emit("game-cycle", { type: "go-startsound" });
+      } /* passage d'un écran Question à un écran ScroeBoard par l'admin*/
+    }, 500);
+
   //lancement de la question à la fin du countdown
   socket.on("end-ready-for-question-countdown", (roomID) => {
     setTimeout(() => {

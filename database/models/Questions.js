@@ -7,9 +7,10 @@ const playerAnswers = mongoose.Schema({
   answeredAtTime: Date,
 });
 
-const questionsSchema = mongoose.Schema({
+const questionSchema = mongoose.Schema({
   gameId: { type: mongoose.Schema.Types.ObjectId, ref: "games" },
-  imageUrl: String,
+  type: String,
+  imageURL: String,
   goodAnswers: [String],
   possibleAnswers: [String],
   index: Number,
@@ -17,6 +18,6 @@ const questionsSchema = mongoose.Schema({
   answerHistory: playerAnswers,
 });
 
-const Questions = mongoose.model("questions", questionsSchema);
+const Question = mongoose.model("questions", questionSchema);
 
-module.exports = Questions;
+module.exports = Question;

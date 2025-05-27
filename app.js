@@ -21,7 +21,6 @@ app.use(expressFileUpload());
 
 // Routes
 const indexRouter = require("./routes/index");
-const usersRouter = require("./routes/users");
 const questionsRouter = require("./routes/questions");
 const playersRouter = require("./routes/players");
 const gamesRouter = require("./routes/games");
@@ -29,7 +28,6 @@ const selfiesRouter = require("./routes/selfie");
 const testsRouter = require("./routes/tests");
 
 app.use("/", indexRouter);
-app.use("/users", usersRouter);
 app.use("/questions", questionsRouter);
 app.use("/players", playersRouter);
 app.use("/games", gamesRouter);

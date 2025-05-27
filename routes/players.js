@@ -1,16 +1,13 @@
 var express = require("express");
 var router = express.Router();
-const Player = require("../database/models/players");
-const Game = require("../database/models/games");
-
+const Player = require("../database/models/Players");
+const Game = require("../database/models/Games");
 
 router.get("/:gameID", (req, res) => {
   Game.findOne({ _id: req.params.gameID })
     .populate("players")
     .then((data) => {
       if (data) {
-        
-
         res.json({ result: true, players: data.players });
       } else {
         res.json({ result: false, error: "pas de guaiême" });
@@ -30,7 +27,10 @@ router.put("/updateName", async (req, res) => {
   }
 
   try {
-    const updateResult = await Player.updateOne({ _id: playerID }, { $set: { playerName: playerName } });
+    const updateResult = await Player.updateOne(
+      { _id: playerID },
+      { $set: { playerName: playerName } }
+    );
 
     if (updateResult.modifiedCount === 1) {
       return res.json({
@@ -64,7 +64,10 @@ router.put("/addScore", async (req, res) => {
   }
 
   try {
-    await Player.updateOne({ _id: playerID }, { $push: { scoreHistory: [score] } });
+    await Player.updateOne(
+      { _id: playerID },
+      { $push: { scoreHistory: [score] } }
+    );
     const updateResult = await Player.updateOne(
       { _id: playerID },
       { $inc: { score: score } }
@@ -89,6 +92,5 @@ router.put("/addScore", async (req, res) => {
     });
   }
 });
-
 
 module.exports = router;

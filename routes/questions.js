@@ -1,7 +1,7 @@
 var express = require("express");
 var router = express.Router();
 
-const Questions = require("../database/models/Questions");
+const Question = require("../database/models/Questions");
 const Games = require("../database/models/Games");
 
 /* GET questions of an idGame */
@@ -29,7 +29,7 @@ router.get("/:gameID", function (req, res) {
 
 /* POST answers of a questionID */ // ====>>> à finir pour aller plus loin afin de savoir qui a bon ou faux
 router.post("/answer", function (req, res) {
-  Questions.updateOne(
+  Question.updateOne(
     { _id: req.body.questionID, playerID: req.body.playerID },
     { answer: req.body.answer, answeredAtTime: req.body.answeredAtTime }
   )

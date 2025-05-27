@@ -1,6 +1,20 @@
 const { handleStartGame } = require("../services/gameService.js");
 const Game = require("../database/models/Games");
-const Questions = require("../database/models/Questions");
+const Question = require("../database/models/Questions");
+
+const sendQuestion = async (io, roomID, questionIndex) => {
+  let gameData = await Game.findOne({ roomID: roomID });
+
+  let questionData = await Question.findOne({
+    gameId: gameData._id,
+    index: questionIndex,
+  });
+  // send next question to all players
+  io.to(roomID).emit("game-cycle", {
+    type: "next-question",
+    payload: questionData,
+  });
+};
 
 const sockets = async (io, socket) => {
   ////////////////////////////////////////////////////////
@@ -23,14 +37,9 @@ const sockets = async (io, socket) => {
       // Communicate entry in game preparation
       io.to(roomID).emit("game-preparation");
       // Prepare the game
-      let questions = await handleStartGame(roomID);
+      await handleStartGame(roomID);
       // Communicate that the game is ready, sending the first question
-      if (questions) {
-        io.to(roomID).emit("game-cycle", {
-          type: "next-question",
-          payload: questions[0],
-        });
-      }
+      sendQuestion(io, roomID, 0);
     }, 500);
   });
 
@@ -49,16 +58,7 @@ const sockets = async (io, socket) => {
         }); //lancement de la question à la fin du countdown
       }
       if (data.type == "get-next-question") {
-        Questions.findOne({
-          gameId: data.gameID,
-          index: data.currentQuestionIndex + 1,
-        }).then((nextQuestion) => {
-          console.log("Next-question:", nextQuestion);
-          io.to(data.roomID).emit("game-cycle", {
-            type: "next-question",
-            payload: nextQuestion,
-          }); // send next question to all players
-        });
+        sendQuestion(io, data.roomID, data.currentQuestionIndex + 1);
       }
     }, 500);
   });

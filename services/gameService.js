@@ -106,11 +106,12 @@ async function initQuestions(game) {
     questions.push({
       gameId: game._id,
       index: i,
+      type: "morph",
+      imageURL: morphURL,
       goodAnswers: goodAnswers,
       possibleAnswers: [...goodAnswers, ...possibleAnswers].sort(
         () => 0.5 - Math.random()
       ),
-      morphURL: morphURL,
     });
   }
 
@@ -147,18 +148,17 @@ async function getMorphURL(p1SelfieFilePath, p2SelfieFilePath) {
 
 async function handleStartGame(roomID) {
   // Get and check game
-  const game = await checkGameHealth(roomID);
-  const playerNames = game.players.map((p) => p.playerName);
+  const gameData = await checkGameHealth(roomID);
 
   // Clean out old questions
-  await Question.deleteMany({ gameId: game.gameId });
-  game.questions = [];
-  await game.save();
+  let questionCleaning = await Question.deleteMany({ gameId: gameData._id });
+  gameData.questions = [];
+  await gameData.save();
 
-  // Pick unique questions
-  let questions = await initQuestions(game);
+  // Prepare and push unique questions
+  await initQuestions(gameData);
 
-  return questions;
+  return true;
 }
 
 module.exports = {

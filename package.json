@@ -18,6 +18,7 @@
     "mongoose": "^8.15.0",
     "morgan": "~1.9.1",
     "node-fetch": "2",
+    "react-native-confetti-cannon": "^1.5.2",
     "socket.io": "^4.8.1",
     "uid2": "^1.0.0",
     "uniqid": "^5.4.0"

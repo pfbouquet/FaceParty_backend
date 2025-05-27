@@ -27,10 +27,7 @@ router.put("/updateName", async (req, res) => {
   }
 
   try {
-    const updateResult = await Player.updateOne(
-      { _id: playerID },
-      { $set: { playerName: playerName } }
-    );
+    const updateResult = await Player.updateOne({ _id: playerID }, { $set: { playerName: playerName } });
 
     if (updateResult.modifiedCount === 1) {
       return res.json({
@@ -52,6 +49,42 @@ router.put("/updateName", async (req, res) => {
   }
 });
 
+/* Update-clear scores for all players in a game when relaunch a party */
+router.put("/clearScores/:gameID", async (req, res) => {
+  const gameID = req.params.gameID;
+
+  if (!gameID) {
+    return res.json({
+      result: false,
+      message: "Missing gameID",
+    });
+  }
+
+  try {
+    const game = await Game.findById(gameID);
+
+    if (!game) {
+      return res.json({
+        result: false,
+        message: "Game not found",
+      });
+    }
+
+    const updateResult = await Player.updateMany({ gameID: gameID }, { score: 0 });
+
+    return res.json({
+      result: true,
+      message: `${updateResult.modifiedCount} player scores reset`,
+    });
+  } catch (error) {
+    return res.json({
+      result: false,
+      message: "Error clearing scores",
+      error: error.message,
+    });
+  }
+});
+
 /* Add score to player (increment in score and push score of each question in scoreHistory*/
 router.put("/addScore", async (req, res) => {
   const { playerID, score } = req.body;
@@ -64,14 +97,8 @@ router.put("/addScore", async (req, res) => {
   }
 
   try {
-    await Player.updateOne(
-      { _id: playerID },
-      { $push: { scoreHistory: [score] } }
-    );
-    const updateResult = await Player.updateOne(
-      { _id: playerID },
-      { $inc: { score: score } }
-    );
+    await Player.updateOne({ _id: playerID }, { $push: { scoreHistory: [score] } });
+    const updateResult = await Player.updateOne({ _id: playerID }, { $inc: { score: score } });
 
     if (updateResult.modifiedCount === 1) {
       return res.json({

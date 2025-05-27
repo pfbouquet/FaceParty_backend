@@ -21,9 +21,9 @@ const sockets = async (io, socket) => {
   ////////////////////  lobby events   ///////////////////
   ////////////////////////////////////////////////////////
 
-  socket.on("playerUpdate", (roomID) => {
+  socket.on("player-update", (roomID) => {
     setTimeout(() => {
-      io.to(roomID).emit("playerUpdate");
+      io.to(roomID).emit("player-update");
     }, 500);
   });
 

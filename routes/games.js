@@ -53,7 +53,7 @@ async function connectPlayerToRoom(io, userSocketID, roomID) {
       })),
     };
 
-    io.to(roomID).emit("game-participant-update", {
+    io.to(roomID).emit("player-update", {
       type: "player-joined",
       message: "New player has joined the roomID party",
       partyStatus: partyStatus,
@@ -157,6 +157,61 @@ router.post("/create", async function (req, res, next) {
         nbRound: gameData.nbRound,
       },
     });
+  } catch (error) {
+    console.error("Error creating game or player:", error);
+    res
+      .status(500)
+      .json({ result: false, error: "Server error", details: error.message });
+  }
+});
+
+// POST	games/kick-player
+router.post("/kick-player", async function (req, res, next) {
+  console.log("Route reached: /games/kick-player");
+  if (!checkBody(req.body, ["playerID", "roomID"])) {
+    console.log("Missing some field in body.");
+    console.log(req.body);
+    res.json({ result: false, error: "Missing or empty fields" });
+    return;
+  }
+
+  try {
+    // Find the party from roomID
+    let gameData = await Game.findOne({ roomID: req.body.roomID });
+    if (!gameData) {
+      console.log("Game not found");
+      res.json({ result: false, error: "Game not found" });
+      return;
+    }
+    // Find the player to kick
+    let playerData = await Player.findOne({
+      _id: req.body.playerID,
+      gameID: gameData._id,
+    });
+    if (!playerData) {
+      console.log("Player not found in the game");
+      res.json({ result: false, error: "Player not found in the game" });
+      return;
+    }
+    // Remove player from the party
+    gameData.players = gameData.players.filter(
+      (player) => player.toString() !== req.body.playerID
+    );
+    await gameData.save();
+    // Delete player from DB
+    await Player.deleteOne({ _id: req.body.playerID });
+
+    // Get a io instance from the app
+    const io = await req.app.get("io");
+    // Send communication to player
+    const playerSocket = io.sockets.sockets.get(playerData.socketID);
+    if (playerSocket) {
+      playerSocket.emit("kicked", {
+        message: "You have been kicked out of the room.",
+      });
+    }
+    // Send comminication to other players in the party
+    io.to(req.body.roomID).emit("player-update");
   } catch (error) {
     console.error("Error creating game or player:", error);
     res

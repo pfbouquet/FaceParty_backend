@@ -37,4 +37,24 @@ router.post("/upload", async (req, res) => {
   }
 });
 
+router.get("/:playerID", async (req, res) => {
+  const playerID = req.params.playerID;
+
+  try {
+    // Récupère le joueur depuis MongoDB
+    const player = await Player.findById(playerID);
+    if (!player || !player.selfieFilePath) {
+      return res.status(404).json({ result: false, error: "Selfie not found" });
+    }
+    const selfiePath = `./tmp/${player.selfieFilePath}`;
+    if (!fs.existsSync(selfiePath)) {
+      return res.status(404).json({ result: false, error: "Selfie file does not exist" });
+    }
+    res.sendFile(selfiePath, { root: "." });
+  } catch (err) {
+    res.status(500).json({ result: false, error: err.message });
+  }
+}
+);
+
 module.exports = router;

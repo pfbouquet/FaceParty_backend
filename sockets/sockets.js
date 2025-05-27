@@ -63,6 +63,9 @@ const sockets = async (io, socket) => {
       if (data.type == "to-the-lobby") {
         io.to(data.roomID).emit("game-cycle", { type: "to-the-lobby" });
       }
+      if (data.type == "to-podium") {
+        io.to(data.roomID).emit("game-cycle", { type: "to-podium" });
+      }
     }, 500);
   });
 

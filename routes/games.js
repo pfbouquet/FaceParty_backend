@@ -7,7 +7,10 @@ const Player = require("../database/models/Players");
 
 async function getNewRoomID() {
   function getRandomCode(min, max) {
-    return String(min + Math.floor((max - min) * Math.random()));
+    return String(min + Math.floor((max - min) * Math.random())).padStart(
+      4,
+      "0"
+    );
   }
 
   let roomID = getRandomCode(0, 9999);

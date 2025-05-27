@@ -6,7 +6,11 @@ const Game = require("../database/models/Games");
 const Player = require("../database/models/Players");
 
 async function getNewRoomID() {
-  let roomID = uid2(4).toUpperCase();
+  function getRandomCode(min, max) {
+    return String(min + Math.floor((max - min) * Math.random()));
+  }
+
+  let roomID = getRandomCode(0, 9999);
   let roomIDExists = true;
 
   // Check that roomID doesn't already exists
@@ -15,7 +19,7 @@ async function getNewRoomID() {
     if (data === null) {
       roomIDExists = false;
     } else {
-      roomID = uid2(4).toUpperCase();
+      roomID = getRandomCode(0, 9999);
     }
   }
   return roomID;
@@ -72,8 +76,6 @@ router.post("/join", async function (req, res, next) {
     res.json({ result: false, error: "Game not found" });
     return;
   }
-
-  console.log({ gameData });
 
   // Create player
   let newPlayer = new Player({

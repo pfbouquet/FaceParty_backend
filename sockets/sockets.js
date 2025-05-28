@@ -68,42 +68,6 @@ const sockets = async (io, socket) => {
       }
     }, 500);
   });
-
-  ////////////////////////////////////////////////////////
-  //////////////////////   TESTS   ///////////////////////
-  ////////////////////////////////////////////////////////
-
-  // question en dur qui sera remplacé plus tard
-  socket.on("question", (data) => {
-    setTimeout(() => {
-      io.emit("questionText", data);
-    }, 500);
-  });
-
-  // socket permettant de stocker en dur une question test
-  socket.on("get-question", (roomID) => {
-    setTimeout(() => {
-      io.to(roomID).emit("questionText", {
-        type: "question",
-        payload: {
-          questionID: "123456789",
-          imageURL:
-            "https://res.cloudinary.com/dat8yzztd/image/upload/v1747919107/picture1_ybfkmw.png",
-          goodAnswers: ["Allan", "Pierre-François"],
-          possibleAnswers: ["Allan", "Marc", "José", "Pierre-François"],
-          index: 2,
-          askedAtTime: Date.now(),
-          answerHistory: [
-            {
-              playerID: "P1",
-              answer: ["José", "Titi"],
-              answeredAtTime: Date.now(),
-            },
-          ],
-        },
-      });
-    }, 500);
-  });
 };
 
 module.exports = sockets;

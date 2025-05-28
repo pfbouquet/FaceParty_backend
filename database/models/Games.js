@@ -10,6 +10,15 @@ const gameSchema = new mongoose.Schema({
       ref: "players",
     },
   ],
+  characters: {
+    type: [
+      {
+        type: mongoose.Types.ObjectId,
+        ref: "characters",
+      },
+    ],
+    default: [],
+  },
   nbRound: { type: Number },
   questions: [
     {

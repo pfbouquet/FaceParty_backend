@@ -3,7 +3,7 @@ var router = express.Router();
 const { checkBody } = require("../modules/checkBody");
 const Character = require("../database/models/Characters");
 
-const allowedTypes = ["celebrity"];
+const allowedCharacterTypes = ["celebrity"];
 
 /* List characters in DB */
 router.get("/", (req, res) => {
@@ -31,7 +31,7 @@ router.post("/new", async (req, res) => {
 
   // Make sure type is in valid types
   if (req.body.type) {
-    if (!allowedTypes.includes(req.body.type)) {
+    if (!allowedCharacterTypes.includes(req.body.type)) {
       console.log("Invalid type provided.");
       res.json({ result: false, error: "Invalid type provided" });
       return;

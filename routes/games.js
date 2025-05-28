@@ -4,7 +4,9 @@ const uid2 = require("uid2");
 const { checkBody } = require("../modules/checkBody");
 const Game = require("../database/models/Games");
 const Player = require("../database/models/Players");
+const Character = require("../database/models/Characters");
 
+// Function to generate a new unique roomID
 async function getNewRoomID() {
   function getRandomCode(min, max) {
     return String(min + Math.floor((max - min) * Math.random())).padStart(
@@ -28,6 +30,7 @@ async function getNewRoomID() {
   return roomID;
 }
 
+// Function to connect a player to a room
 async function connectPlayerToRoom(io, userSocketID, roomID) {
   const playerSocket = io.sockets.sockets.get(userSocketID);
   if (playerSocket) {
@@ -165,8 +168,8 @@ router.post("/create", async function (req, res, next) {
   }
 });
 
-// POST	games/kick-player
-router.post("/kick-player", async function (req, res, next) {
+// DELETE	games/kick-player
+router.delete("/kick-player", async function (req, res, next) {
   console.log("Route reached: /games/kick-player");
   if (!checkBody(req.body, ["playerID", "roomID"])) {
     console.log("Missing some field in body.");
@@ -220,5 +223,68 @@ router.post("/kick-player", async function (req, res, next) {
       .json({ result: false, error: "Server error", details: error.message });
   }
 });
+
+// POST  games/add-character
+router.post("/add-character", async function (req, res, next) {
+  console.log("Route reached: POST /games/add-character");
+
+  // Check body
+  if (!checkBody(req.body, ["roomID"])) {
+    console.log("Missing some field in body.");
+    console.log(req.body);
+    res.json({ result: false, error: "Missing or empty fields" });
+    return;
+  }
+
+  try {
+    // Find the party from roomID
+    let gameData = await Game.findOne({ roomID: req.body.roomID });
+    if (!gameData) {
+      console.log("Game not found");
+      res.json({ result: false, error: "Game not found" });
+      return;
+    }
+    // Get a random character not already in the party
+    let filters = {};
+    if (req.body.type) {
+      filters.type = req.body.type;
+    }
+    let characters = await Character.find(filters);
+    let charactersFiltered = characters.filter(
+      (character) => !gameData.characters.includes(character._id)
+    );
+    if (!charactersFiltered || charactersFiltered.length === 0) {
+      res.json({ result: false, error: "No new characters available" });
+      return;
+    }
+
+    let newCharacter =
+      characters[Math.floor(Math.random() * characters.length)];
+
+    // Add new character to the party
+    gameData.characters.push(newCharacter._id);
+    let newGameData = await gameData.save();
+    if (!newGameData) {
+      res.json({
+        result: false,
+        error: "Issue adding new character to the game",
+      });
+      return;
+    }
+    res.json({
+      result: true,
+      newCharacter: newCharacter,
+      game: newGameData,
+    });
+  } catch (error) {
+    console.error("Error adding character:", error);
+    res
+      .status(500)
+      .json({ result: false, error: "Server error", details: error.message });
+    return;
+  }
+});
+
+// DELETE  games/kick-character
 
 module.exports = router;

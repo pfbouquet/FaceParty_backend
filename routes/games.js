@@ -206,7 +206,8 @@ router.post("/kick-player", async function (req, res, next) {
     // Send communication to player
     const playerSocket = io.sockets.sockets.get(playerData.socketID);
     if (playerSocket) {
-      playerSocket.emit("kicked", {
+      playerSocket.leave(req.body.roomID);
+      playerSocket.emit("you-are-kicked", {
         message: "You have been kicked out of the room.",
       });
     }

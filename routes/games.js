@@ -244,22 +244,26 @@ router.post("/add-character", async function (req, res, next) {
       res.json({ result: false, error: "Game not found" });
       return;
     }
-    // Get a random character not already in the party
+    // Get new available characters
     let filters = {};
     if (req.body.type) {
       filters.type = req.body.type;
     }
     let characters = await Character.find(filters);
-    let charactersFiltered = characters.filter(
-      (character) => !gameData.characters.includes(character._id)
+    let gameCharacterIds = gameData.characters.map((id) => id.toString());
+    let charactersAvailable = characters.filter(
+      (character) => !gameCharacterIds.includes(character._id.toString())
     );
-    if (!charactersFiltered || charactersFiltered.length === 0) {
+    // Check if at least 1 new available character exists
+    if (!charactersAvailable || charactersAvailable.length === 0) {
       res.json({ result: false, error: "No new characters available" });
       return;
     }
-
+    // Pick newCharacter randomly
     let newCharacter =
-      characters[Math.floor(Math.random() * characters.length)];
+      charactersAvailable[
+        Math.floor(Math.random() * charactersAvailable.length)
+      ];
 
     // Add new character to the party
     gameData.characters.push(newCharacter._id);
@@ -271,6 +275,16 @@ router.post("/add-character", async function (req, res, next) {
       });
       return;
     }
+
+    // Communicate to the room that game composition was updated
+    // Get a io instance from the app
+    const io = await req.app.get("io");
+    // Send event to room socket
+    io.to(req.body.roomID).emit("player-update", {
+      type: "character-added",
+      message: "A new character has been added to the party",
+    });
+    // Route res success
     res.json({
       result: true,
       newCharacter: newCharacter,
@@ -286,5 +300,69 @@ router.post("/add-character", async function (req, res, next) {
 });
 
 // DELETE  games/kick-character
+router.delete("/kick-character", async function (req, res, next) {
+  console.log("Route reached: POST /games/kick-character");
+
+  // Check body
+  if (!checkBody(req.body, ["roomID", "characterID"])) {
+    console.log("Missing some field in body.");
+    console.log(req.body);
+    res.json({ result: false, error: "Missing or empty fields" });
+    return;
+  }
+
+  try {
+    // Find the party from roomID
+    let gameData = await Game.findOne({ roomID: req.body.roomID });
+    if (!gameData) {
+      console.log("Game not found");
+      res.json({ result: false, error: "Game not found" });
+      return;
+    }
+
+    // Remove character from the game
+    const updateResult = await Game.updateOne(
+      { _id: gameData._id },
+      { $pull: { characters: req.body.characterID } }
+    );
+
+    if (!updateResult) {
+      res.json({
+        result: false,
+        error: "Issue removing character from the game",
+      });
+      return;
+    }
+    if (updateResult.modifiedCount <= 0) {
+      res.json({
+        result: true,
+        error: "Character was not in the game",
+      });
+      return;
+    }
+    if (updateResult.modifiedCount > 0) {
+      // Communicate to the room that game composition was updated
+      // Get a io instance from the app
+      const io = await req.app.get("io");
+      // Send event to room socket
+      io.to(req.body.roomID).emit("player-update", {
+        type: "character-removed",
+        message: "A character has been removed from the game",
+      });
+      // res is true
+      res.json({
+        result: true,
+        error: "A character has been removed from the game",
+      });
+      return;
+    }
+  } catch (error) {
+    console.error("Error removing character:", error);
+    res
+      .status(500)
+      .json({ result: false, error: "Server error", details: error.message });
+    return;
+  }
+});
 
 module.exports = router;

@@ -26,6 +26,7 @@ const playersRouter = require("./routes/players");
 const gamesRouter = require("./routes/games");
 const selfiesRouter = require("./routes/selfie");
 const testsRouter = require("./routes/tests");
+const charactersRouter = require("./routes/characters");
 
 app.use("/", indexRouter);
 app.use("/questions", questionsRouter);
@@ -33,5 +34,6 @@ app.use("/players", playersRouter);
 app.use("/games", gamesRouter);
 app.use("/selfie", selfiesRouter);
 app.use("/tests", testsRouter);
+app.use("/characters", charactersRouter);
 
 module.exports = app;

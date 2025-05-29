@@ -111,7 +111,7 @@ router.post("/join", async function (req, res, next) {
     isAdmin: req.body.isAdmin,
     socketID: req.body.playerSocketID,
     playerName: "anonymous",
-    selfieFilePath: "pathTest",
+    portraitFilePath: "",
     scoreHistory: 0,
     score: 0,
     rank: 0,

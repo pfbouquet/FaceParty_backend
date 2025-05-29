@@ -30,20 +30,20 @@ async function checkGameHealth(roomID) {
       playerNames: playerNames,
     };
   }
-  // 3. check that all player selfies are present
+  // 3. check that all player portraits are present
   game.players.map((p) => {
-    // do we have the selfieFilePath ?
-    if (!p.selfieFilePath) {
+    // do we have the portraitFilePath ?
+    if (!p.portraitFilePath) {
       return {
         result: false,
-        error: `Player avatar is missing for player ${p.playerName}. Please take another selfie.`,
+        error: `Player avatar is missing for player ${p.playerName}. Please take another portrait.`,
       };
     }
     // do we have the file ?
-    if (!fs.existsSync(p.selfieFilePath)) {
+    if (!fs.existsSync(p.portraitFilePath)) {
       return {
         result: false,
-        error: `File is missing for player ${p.playerName}. Please take another selfie.`,
+        error: `File is missing for player ${p.playerName}. Please take another portrait.`,
       };
     }
   });
@@ -100,7 +100,10 @@ async function initQuestions(game) {
       .sort(() => 0.5 - Math.random())
       .slice(0, 2);
     // get morph
-    const morphURL = await getMorphURL(p1.selfieFilePath, p2.selfieFilePath);
+    const morphURL = await getMorphURL(
+      p1.portraitFilePath,
+      p2.portraitFilePath
+    );
 
     // finalise question data
     questions.push({
@@ -126,11 +129,11 @@ async function initQuestions(game) {
   return questions;
 }
 
-async function getMorphURL(p1SelfieFilePath, p2SelfieFilePath) {
+async function getMorphURL(p1PortraitFilePath, p2PortraitFilePath) {
   // get morph
   let morphData = await getMorph(
-    `./tmp/${p1SelfieFilePath}`,
-    `./tmp/${p2SelfieFilePath}`
+    `./tmp/${p1PortraitFilePath}`,
+    `./tmp/${p2PortraitFilePath}`
   );
   // handle errors
   if (!morphData) {

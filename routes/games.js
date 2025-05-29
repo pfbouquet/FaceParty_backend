@@ -164,7 +164,7 @@ router.post("/create", async function (req, res, next) {
       gameCreatedAtTime: Date.now(),
       roomID: roomID,
       type: "multi",
-      nbRound: 3, // Default value to 3 to ease tests
+      nbRound: 6, // Default value to 6 to ease tests
     });
 
     if (req.body.nbRound) {

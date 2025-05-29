@@ -66,6 +66,28 @@ async function connectPlayerToRoom(io, userSocketID, roomID) {
   }
 }
 
+// GET games/:roomID
+router.get("/:roomID", async function (req, res, next) {
+  console.log("Route reached: /games/:roomID");
+  if (!checkBody(req.params, ["roomID"])) {
+    console.log("Missing some field in params.");
+    console.log(req.params);
+    res.json({ result: false, error: "Missing or empty fields" });
+    return;
+  }
+  // Find the party
+  let gameData = await Game.findOne({ roomID: req.params.roomID }).populate([
+    "players",
+    "characters",
+  ]);
+  if (!gameData) {
+    console.log("Game not found");
+    res.json({ result: false, error: "Game not found" });
+    return;
+  }
+  res.json({ result: true, game: gameData });
+});
+
 // POST games/join
 router.post("/join", async function (req, res, next) {
   console.log("Route reached: /games/join");

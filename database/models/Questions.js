@@ -8,7 +8,7 @@ const playerAnswers = mongoose.Schema({
 });
 
 const questionSchema = mongoose.Schema({
-  gameId: { type: mongoose.Schema.Types.ObjectId, ref: "games" },
+  gameID: { type: mongoose.Schema.Types.ObjectId, ref: "games" },
   type: String,
   imageURL: String,
   goodAnswers: [String],

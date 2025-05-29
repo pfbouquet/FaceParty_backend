@@ -3,58 +3,61 @@ const Game = require("../database/models/Games");
 const Question = require("../database/models/Questions");
 const { getMorph } = require("./getMorph");
 
-async function checkGameHealth(roomID) {
+async function checkAndPrepareGameData(roomID) {
   console.log("handleStartGame called with roomID:", roomID);
   // get game data
-  const game = await Game.findOne({ roomID: roomID }).populate("players");
-  if (!game) {
-    return { result: false, error: "Game not found" };
+  let game = await Game.findOne({ roomID: roomID }).populate([
+    "players",
+    "characters",
+  ]);
+  if (!game) throw new Error("Game not found");
+
+  // Clean DB from old questions
+  game.questions = [];
+  await game.save();
+  await Question.deleteMany({ gameID: game._id });
+
+  // 0) Prepare data
+  let participants = [
+    ...game.players.map((el) => ({
+      name: el.playerName,
+      portraitURI: `./tmp/${el.portraitFilePath}`,
+    })),
+    ...game.characters.map((el) => ({
+      name: el.name,
+      portraitURI: `./public/characters/${el.portraitFilePath}`,
+    })),
+  ];
+
+  // 1) Check if names are unique
+  if (new Set(participants.map((p) => p.name)).size !== participants.length) {
+    throw new Error(
+      "Player names and Characters names are not unique: " +
+        participants.map((p) => p.name).join(", ")
+    );
   }
 
-  // check game players consistency
-  // 1. check that all player have a name
-  game.players.forEach((player) => {
-    if (!player.name) {
-      return { result: false, error: "Player name is missing" };
+  // 2) Check that all player portraits are present
+  for (let p of participants) {
+    if (!fs.existsSync(p.portraitURI)) {
+      throw new Error(
+        `Portrait file not found for ${p.name} at ${p.portraitURI}`
+      );
     }
-  });
-  // 2. check that all playernames are unique
-  const playerNames = game.players.map((p) =>
-    p.playerName.trim().toUpperCase()
-  );
-  const uniquePlayerNames = new Set(playerNames);
-  if (uniquePlayerNames.size !== playerNames.length) {
-    return {
-      result: false,
-      error: "Player names are not unique",
-      playerNames: playerNames,
-    };
   }
-  // 3. check that all player portraits are present
-  game.players.map((p) => {
-    // do we have the portraitFilePath ?
-    if (!p.portraitFilePath) {
-      return {
-        result: false,
-        error: `Player avatar is missing for player ${p.playerName}. Please take another portrait.`,
-      };
-    }
-    // do we have the file ?
-    if (!fs.existsSync(p.portraitFilePath)) {
-      return {
-        result: false,
-        error: `File is missing for player ${p.playerName}. Please take another portrait.`,
-      };
-    }
-  });
-  return game;
+
+  return {
+    nbRound: game.nbRound,
+    gameID: game._id,
+    participants: participants,
+  };
 }
 
-function getUniquePairs(players) {
+function getUniquePairs(participants) {
   let pairs = [];
-  for (let i = 0; i < players.length; i++) {
-    for (let j = i + 1; j < players.length; j++) {
-      pairs.push([players[i], players[j]]);
+  for (let i = 0; i < participants.length; i++) {
+    for (let j = i + 1; j < participants.length; j++) {
+      pairs.push([participants[i], participants[j]]);
     }
   }
   return pairs;
@@ -68,13 +71,13 @@ async function pushQuestionToDB(question) {
     return { result: false, error: "Error while saving question" };
   }
   // add question to game
-  let gameData = await Game.findById(question.gameId);
+  let gameData = await Game.findById(question.gameID);
   gameData.questions.push(questionData._id);
   let updateGameData = await gameData.save();
   if (!updateGameData) {
     return {
       result: false,
-      error: `Error while adding question ${questionData._id} to game ${question.gameId}`,
+      error: `Error while adding question ${questionData._id} to game ${question.gameID}`,
     };
   }
 
@@ -82,35 +85,40 @@ async function pushQuestionToDB(question) {
 }
 
 async function initQuestions(game) {
+  let questions = [];
+
   // Prepare combinaisons
-  const combinations = getUniquePairs(game.players);
+  const combinations = getUniquePairs(game.participants);
   const selectedCombinations = [...combinations]
     .sort(() => 0.5 - Math.random())
     .slice(0, game.nbRound);
 
   // Prepare questions
-  let playerNames = game.players.map((p) => p.playerName);
-  let questions = [];
+  let names = game.participants.map((p) => p.name);
+
   for (let i = 0; i < selectedCombinations.length; i++) {
     let [p1, p2] = selectedCombinations[i];
     // prepare answers
-    const goodAnswers = [p1.playerName, p2.playerName];
-    const possibleAnswers = playerNames
+    const goodAnswers = [p1.name, p2.name];
+    const possibleAnswers = names
       .filter((n) => !goodAnswers.includes(n))
       .sort(() => 0.5 - Math.random())
       .slice(0, 2);
+
     // get morph
-    const morphURL = await getMorphURL(
-      p1.portraitFilePath,
-      p2.portraitFilePath
-    );
+    const morphData = await getMorph(p1.portraitURI, p2.portraitURI);
+    // Handle morph errors
+    if (!morphData || morphData.result === false || !morphData.morph_url) {
+      // if your getMorph returns { result:false, error: "..." }
+      throw new Error(morphData.error || "getMorph reported failure");
+    }
 
     // finalise question data
     questions.push({
-      gameId: game._id,
+      gameID: game.gameID,
       index: i,
       type: "morph",
-      imageURL: morphURL,
+      imageURL: morphData.morph_url,
       goodAnswers: goodAnswers,
       possibleAnswers: [...goodAnswers, ...possibleAnswers].sort(
         () => 0.5 - Math.random()
@@ -129,39 +137,19 @@ async function initQuestions(game) {
   return questions;
 }
 
-async function getMorphURL(p1PortraitFilePath, p2PortraitFilePath) {
-  // get morph
-  let morphData = await getMorph(
-    `./tmp/${p1PortraitFilePath}`,
-    `./tmp/${p2PortraitFilePath}`
-  );
-  // handle errors
-  if (!morphData) {
-    return {
-      result: false,
-      error: "No data; Problem uncontered",
-      morphResult: morphData,
-    };
-  }
-  if (!morphData.result) {
-    return morphData;
-  }
-  return morphData.morph_url;
-}
-
 async function handleStartGame(roomID) {
-  // Get and check game
-  const gameData = await checkGameHealth(roomID);
+  try {
+    // Get and check game
+    const gameData = await checkAndPrepareGameData(roomID);
 
-  // Clean out old questions
-  let questionCleaning = await Question.deleteMany({ gameId: gameData._id });
-  gameData.questions = [];
-  await gameData.save();
+    // Prepare and push unique questions
+    const questions = await initQuestions(gameData);
 
-  // Prepare and push unique questions
-  await initQuestions(gameData);
-
-  return true;
+    return { result: true, questions: questions };
+  } catch (err) {
+    console.error("handleStartGame error:", err);
+    return { result: false, error: err.message };
+  }
 }
 
 module.exports = {

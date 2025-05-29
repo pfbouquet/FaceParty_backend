@@ -6,7 +6,7 @@ const sendQuestion = async (io, roomID, questionIndex) => {
   let gameData = await Game.findOne({ roomID: roomID });
 
   let questionData = await Question.findOne({
-    gameId: gameData._id,
+    gameID: gameData._id,
     index: questionIndex,
   });
   // send next question to all players

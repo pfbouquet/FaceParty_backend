@@ -19,8 +19,8 @@ router.get("/testmorph", async function (req, res, next) {
 /* GET /tests/teststart */
 router.get("/teststart", async function (req, res, next) {
   console.log("Route reached /tests/teststart");
-  let questions = await handleStartGame("TEST");
-  res.json({ result: true, startData: questions });
+  let startGameRes = await handleStartGame("9999");
+  res.json(startGameRes);
 });
 
 module.exports = router;

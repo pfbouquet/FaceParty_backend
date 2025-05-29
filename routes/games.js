@@ -238,6 +238,11 @@ router.delete("/kick-player", async function (req, res, next) {
     }
     // Send comminication to other players in the party
     io.to(req.body.roomID).emit("player-update");
+    // res is true
+    res.json({
+      result: true,
+      message: "A player has been removed from the game",
+    });
   } catch (error) {
     console.error("Error creating game or player:", error);
     res
@@ -374,7 +379,7 @@ router.delete("/kick-character", async function (req, res, next) {
       // res is true
       res.json({
         result: true,
-        error: "A character has been removed from the game",
+        message: "A character has been removed from the game",
       });
       return;
     }

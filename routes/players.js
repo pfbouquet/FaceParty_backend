@@ -1,5 +1,6 @@
 var express = require("express");
 var router = express.Router();
+const { checkBody } = require("../modules/checkBody");
 const Player = require("../database/models/Players");
 const Game = require("../database/models/Games");
 
@@ -27,7 +28,10 @@ router.put("/updateName", async (req, res) => {
   }
 
   try {
-    const updateResult = await Player.updateOne({ _id: playerID }, { $set: { playerName: playerName } });
+    const updateResult = await Player.updateOne(
+      { _id: playerID },
+      { $set: { playerName: playerName } }
+    );
 
     if (updateResult.modifiedCount === 1) {
       return res.json({
@@ -45,6 +49,59 @@ router.put("/updateName", async (req, res) => {
       result: false,
       message: "Error updating playerName",
       error: error.message,
+    });
+  }
+});
+
+/* POST /players/update-admin */
+router.post("/update-admin", async (req, res) => {
+  console.log("Route reached: POST /players/update-admin");
+  if (!checkBody(req.body, ["roomID", "playerID", "isAdmin"])) {
+    console.log("Missing some field in params.");
+    console.log(req.params);
+    res.json({ result: false, error: "Missing or empty fields" });
+    return;
+  }
+
+  try {
+    // Get player
+    const playerData = await Player.findById(req.body.playerID);
+    if (!playerData) {
+      return res.json({
+        result: false,
+        error: "Player not found in given room",
+      });
+    }
+    // Update player isAdmin
+    const updateResult = await Player.updateOne(
+      { _id: req.body.playerID },
+      { $set: { isAdmin: req.body.isAdmin } }
+    );
+    if (updateResult.modifiedCount === 0) {
+      // nothing actually changed
+      return res.json({
+        result: true,
+        warning: "isAdmin was already set to that value",
+      });
+    }
+    // Success
+    const io = await req.app.get("io");
+    // Send communication to player
+    const playerSocket = io.sockets.sockets.get(playerData.socketID);
+    if (playerSocket) {
+      playerSocket.emit("update-admin", {
+        isAdmin: req.body.isAdmin,
+      });
+    }
+    // Send comminication to other players in the party
+    io.to(req.body.roomID).emit("player-update");
+
+    return res.json({ result: true });
+  } catch (err) {
+    console.error("Error in /players/update-admin:", err);
+    return res.status(500).json({
+      result: false,
+      error: "Internal server error",
     });
   }
 });
@@ -70,7 +127,10 @@ router.put("/clearScores/:gameID", async (req, res) => {
       });
     }
 
-    const updateResult = await Player.updateMany({ gameID: gameID }, { score: 0 });
+    const updateResult = await Player.updateMany(
+      { gameID: gameID },
+      { score: 0 }
+    );
 
     return res.json({
       result: true,
@@ -97,8 +157,14 @@ router.put("/addScore", async (req, res) => {
   }
 
   try {
-    await Player.updateOne({ _id: playerID }, { $push: { scoreHistory: [score] } });
-    const updateResult = await Player.updateOne({ _id: playerID }, { $inc: { score: score } });
+    await Player.updateOne(
+      { _id: playerID },
+      { $push: { scoreHistory: [score] } }
+    );
+    const updateResult = await Player.updateOne(
+      { _id: playerID },
+      { $inc: { score: score } }
+    );
 
     if (updateResult.modifiedCount === 1) {
       return res.json({

@@ -1,0 +1,32 @@
+# keep the tmp folder but not its files
+tmp/*.*
+!*/.gitkeep
+
+# Node.js modules (we'll install fresh inside the container)
+node_modules
+npm-debug.log*
+yarn-error.log*
+
+# Git metadata
+.git
+.gitignore
+
+# Environment files (you’ll inject them via Docker secrets / compose)
+.env
+.env.*.local
+
+# Editor and OS files
+.vscode/
+.idea/
+*.swp
+.DS_Store
+
+# Logs
+logs
+*.log
+
+# Build outputs (if you ever compile TS, Babel, etc.)
+dist/
+build/
+.env
+

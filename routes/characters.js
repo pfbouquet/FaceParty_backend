@@ -7,7 +7,6 @@ const allowedCharacterTypes = ["celebrity"];
 
 /* List characters in DB */
 router.get("/", (req, res) => {
-  console.log("Route reached: GET /characters");
   Character.find().then((data) => {
     if (data) {
       res.json({ result: true, characters: data });
@@ -19,8 +18,6 @@ router.get("/", (req, res) => {
 
 /* Create a new character */
 router.post("/new", async (req, res) => {
-  console.log("Route reached: POST /characters/new");
-
   // Check the body
   if (!checkBody(req.body, ["name", "portraitFilePath"])) {
     console.log("Missing some field in body.");

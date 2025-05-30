@@ -9,7 +9,6 @@ const Player = require("../database/models/Players");
 const Character = require("../database/models/Characters");
 
 router.post("/upload", async (req, res) => {
-  console.log("Route reached: POST /portrait/upload");
   if (!req.files || !req.files.photoFromFront) {
     return res.status(400).json({ result: false, error: "No file uploaded" });
   }
@@ -41,7 +40,6 @@ router.post("/upload", async (req, res) => {
 });
 
 router.get("/:type/:id", async (req, res) => {
-  console.log("Route reached: GET /portrait/:type/:id");
   if (!checkBody(req.params, ["type", "id"])) {
     console.log("Missing some field in params.");
     console.log(req.params);

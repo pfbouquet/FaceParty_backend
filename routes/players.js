@@ -55,7 +55,6 @@ router.put("/updateName", async (req, res) => {
 
 /* POST /players/update-admin */
 router.post("/update-admin", async (req, res) => {
-  console.log("Route reached: POST /players/update-admin");
   if (!checkBody(req.body, ["roomID", "playerID", "isAdmin"])) {
     console.log("Missing some field in params.");
     console.log(req.params);

@@ -33,7 +33,6 @@ async function getNewRoomID() {
 
 // GET games/:roomID
 router.get("/:roomID", async function (req, res, next) {
-  console.log("Route reached: /games/:roomID");
   if (!checkBody(req.params, ["roomID"])) {
     console.log("Missing some field in params.");
     console.log(req.params);
@@ -55,7 +54,6 @@ router.get("/:roomID", async function (req, res, next) {
 
 // POST games/join
 router.post("/join", async function (req, res, next) {
-  console.log("Route reached: /games/join");
   if (!checkBody(req.body, ["playerSocketID", "isAdmin", "roomID"])) {
     console.log("Missing some field in body.");
     console.log(req.body);
@@ -125,8 +123,6 @@ router.post("/join", async function (req, res, next) {
 
 // POST	games/create
 router.post("/create", async function (req, res, next) {
-  console.log("Route reached: /games/create");
-
   try {
     let roomID = await getNewRoomID();
 
@@ -162,7 +158,6 @@ router.post("/create", async function (req, res, next) {
 
 // DELETE	games/kick-player
 router.delete("/kick-player", async function (req, res, next) {
-  console.log("Route reached: /games/kick-player");
   if (!checkBody(req.body, ["playerID", "roomID"])) {
     console.log("Missing some field in body.");
     console.log(req.body);
@@ -223,7 +218,6 @@ router.delete("/kick-player", async function (req, res, next) {
 
 // POST  games/add-character
 router.post("/add-character", async function (req, res, next) {
-  console.log("Route reached: POST /games/add-character");
 
   // Check body
   if (!checkBody(req.body, ["roomID"])) {
@@ -298,7 +292,6 @@ router.post("/add-character", async function (req, res, next) {
 
 // DELETE  games/kick-character
 router.delete("/kick-character", async function (req, res, next) {
-  console.log("Route reached: POST /games/kick-character");
 
   // Check body
   if (!checkBody(req.body, ["roomID", "characterID"])) {

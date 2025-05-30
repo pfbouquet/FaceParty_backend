@@ -10,7 +10,7 @@ router.get("/:gameID", (req, res) => {
       if (data) {
         res.json({ result: true, players: data.players });
       } else {
-        res.json({ result: false, error: "pas de guaiême" });
+        res.json({ result: false, error: "pas de game" });
       }
     });
 });

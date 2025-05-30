@@ -73,7 +73,7 @@ router.post("/join", async function (req, res, next) {
     gameID: gameData._id,
     isAdmin: req.body.isAdmin,
     socketID: req.body.playerSocketID,
-    playerName: "anonymous",
+    playerName: "New player",
     portraitFilePath: "",
     scoreHistory: 0,
     score: 0,

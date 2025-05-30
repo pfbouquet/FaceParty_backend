@@ -5,6 +5,7 @@ const { checkBody } = require("../modules/checkBody");
 const Game = require("../database/models/Games");
 const Player = require("../database/models/Players");
 const Character = require("../database/models/Characters");
+const { socketJoinRoom } = require("../services/socketRoomManager");
 
 // Function to generate a new unique roomID
 async function getNewRoomID() {
@@ -28,21 +29,6 @@ async function getNewRoomID() {
     }
   }
   return roomID;
-}
-
-// Function to connect a player to a room
-async function connectPlayerToRoom(io, userSocketID, roomID) {
-  const playerSocket = io.sockets.sockets.get(userSocketID);
-  if (playerSocket) {
-    playerSocket.emit("join-room", roomID);
-    // Notify others that the game player is to be refreshed
-    io.to(roomID).emit("player-update", {
-      type: "player-joined",
-      message: "A new player has joined the room",
-    });
-  } else {
-    console.warn(`Socket with ID ${playerSocket} not found`);
-  }
 }
 
 // GET games/:roomID
@@ -114,7 +100,12 @@ router.post("/join", async function (req, res, next) {
 
   // Connect player socket to game room
   const io = await req.app.get("io");
-  connectPlayerToRoom(io, playerData.socketID, gameData.roomID);
+  const playerSocket = io.sockets.sockets.get(playerData.socketID);
+  if (playerSocket) {
+    socketJoinRoom(playerSocket, gameData.roomID);
+  } else {
+    console.warn(`Socket with ID ${playerSocket} not found`);
+  }
 
   // Res
   res.json({
@@ -286,7 +277,7 @@ router.post("/add-character", async function (req, res, next) {
     // Get a io instance from the app
     const io = await req.app.get("io");
     // Send event to room socket
-    io.to(req.body.roomID).emit("player-update", {
+    io.to(gameData.roomID).emit("player-update", {
       type: "character-added",
       message: "A new character has been added to the party",
     });

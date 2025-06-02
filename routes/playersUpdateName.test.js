@@ -66,7 +66,7 @@ describe("PUT /updateName", () => {
     expect(res.body.message).toBe("PlayerName NOT changed");
   });
 
-  it("devrait retourner une erreur en cas d'exception serveur", async () => {
+  it("devrait retourner une erreur en cas de problème avec le serveur", async () => {
     Player.updateOne.mockRejectedValueOnce(new Error("DB error"));
 
     const res = await request(app)

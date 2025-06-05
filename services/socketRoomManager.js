@@ -2,9 +2,7 @@ function socketLeaveRoom(socket, room) {
   socket.leave(room);
   socket.emit("left-success", { room });
   socket.to(room).emit("player-update", {
-    type: "player-joined",
     message: `User ${socket.id} left ${room}`,
-    leaver: socket.id,
   });
 }
 
@@ -24,9 +22,7 @@ function socketJoinRoom(socket, room) {
   socket.join(room);
   socket.emit("joined-room", room);
   socket.to(room).emit("player-update", {
-    type: "player-joined",
     message: `User ${socket.id} joined ${room}`,
-    joiner: socket.id,
   });
 }
 

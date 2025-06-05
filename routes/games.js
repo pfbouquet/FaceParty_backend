@@ -218,7 +218,6 @@ router.delete("/kick-player", async function (req, res, next) {
 
 // POST  games/add-character
 router.post("/add-character", async function (req, res, next) {
-
   // Check body
   if (!checkBody(req.body, ["roomID"])) {
     console.log("Missing some field in body.");
@@ -272,7 +271,6 @@ router.post("/add-character", async function (req, res, next) {
     const io = await req.app.get("io");
     // Send event to room socket
     io.to(gameData.roomID).emit("player-update", {
-      type: "character-added",
       message: "A new character has been added to the party",
     });
     // Route res success
@@ -292,7 +290,6 @@ router.post("/add-character", async function (req, res, next) {
 
 // DELETE  games/kick-character
 router.delete("/kick-character", async function (req, res, next) {
-
   // Check body
   if (!checkBody(req.body, ["roomID", "characterID"])) {
     console.log("Missing some field in body.");
@@ -336,7 +333,6 @@ router.delete("/kick-character", async function (req, res, next) {
       const io = await req.app.get("io");
       // Send event to room socket
       io.to(req.body.roomID).emit("player-update", {
-        type: "character-removed",
         message: "A character has been removed from the game",
       });
       // res is true

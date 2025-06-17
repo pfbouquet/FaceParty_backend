@@ -27,8 +27,8 @@ Liens vers les différents repositories nécessaire à l'application:
 ## Fonctionnalitées principales:
 
 - Gestion des parties, joueurs et scores (MongoDB).
-- Morphing d’images via un service Python externe.
 - Synchronisation temps réel avec Socket.io.
+- Morphing d’images via un service Python externe. Cette partie est assuré par une API reposant elle même sur la librairie [face_morpher GitHub Repository](https://github.com/alyssaq/face_morpher)
 
 ## Prérequis
 

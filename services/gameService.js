@@ -1,8 +1,11 @@
+// Fonctions servants à créer les questions
+
 const fs = require("fs");
 const Game = require("../database/models/Games");
 const Question = require("../database/models/Questions");
 const { getMorph } = require("./getMorph");
 
+// fonction permettant de charger les données de MongoDB + supprime les anciennes questions de la partie + check noms uniques et présence des portrait
 async function checkAndPrepareGameData(roomID) {
   console.log("handleStartGame called with roomID:", roomID);
   // get game data
@@ -53,6 +56,7 @@ async function checkAndPrepareGameData(roomID) {
   };
 }
 
+// générateur de paires uniques
 function getUniquePairs(participants) {
   let pairs = [];
   for (let i = 0; i < participants.length; i++) {
@@ -63,6 +67,7 @@ function getUniquePairs(participants) {
   return pairs;
 }
 
+// Envoie les questions et leurs réponses en BDD + ajoute ID des questions en clés étrangères dans la collection games
 async function pushQuestionToDB(question) {
   // push question to DB
   const newQuestion = new Question(question);
@@ -84,6 +89,7 @@ async function pushQuestionToDB(question) {
   return { result: true, question: questionData };
 }
 
+// Créé les questions avec les pairs uniques à mixer et les réponses et appel API Morpher
 async function initQuestions(game) {
   let questions = [];
 
@@ -98,14 +104,14 @@ async function initQuestions(game) {
 
   for (let i = 0; i < selectedCombinations.length; i++) {
     let [p1, p2] = selectedCombinations[i];
-    // prepare answers
+    // prepare answers randomly for 2/4
     const goodAnswers = [p1.name, p2.name];
     const possibleAnswers = names
       .filter((n) => !goodAnswers.includes(n))
       .sort(() => 0.5 - Math.random())
       .slice(0, 2);
 
-    // get morph
+    // get morph to morpher
     const morphData = await getMorph(p1.portraitURI, p2.portraitURI);
     // Handle morph errors
     if (!morphData || morphData.result === false || !morphData.morph_url) {
@@ -120,7 +126,7 @@ async function initQuestions(game) {
       type: "morph",
       imageURL: morphData.morph_url,
       goodAnswers: goodAnswers,
-      possibleAnswers: [...goodAnswers, ...possibleAnswers].sort(
+      possibleAnswers: [...goodAnswers, ...possibleAnswers].sort( // mélange les 4 réponses possibles pour leur affichage dans le quiz
         () => 0.5 - Math.random()
       ),
     });
@@ -137,6 +143,7 @@ async function initQuestions(game) {
   return questions;
 }
 
+// fonction principale appelant les autres fonctions ci-dessus
 async function handleStartGame(roomID) {
   try {
     // Get and check game

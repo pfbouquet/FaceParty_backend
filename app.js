@@ -2,11 +2,11 @@ require("dotenv").config();
 require("./database/connection");
 
 const express = require("express");
-const path = require("path");
-const cookieParser = require("cookie-parser");
-const logger = require("morgan");
-const cors = require("cors");
-const expressFileUpload = require("express-fileupload");
+const path = require("path"); //module node pour fournir des chemins sûres pour les fichiers
+const cookieParser = require("cookie-parser"); //utilisé pour la persistance/les sessions
+const logger = require("morgan"); //module pour débugger
+const cors = require("cors"); //module sécurité
+const expressFileUpload = require("express-fileupload"); //module pour envoi de fichier
 
 const app = express();
 

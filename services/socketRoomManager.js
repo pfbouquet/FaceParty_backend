@@ -1,3 +1,4 @@
+// Quitte une room, notifie le joueur et les autres
 function socketLeaveRoom(socket, room) {
   socket.leave(room);
   socket.emit("left-success", { room });
@@ -6,6 +7,7 @@ function socketLeaveRoom(socket, room) {
   });
 }
 
+// Quitte toutes les rooms
 function socketLeaveAllRooms(socket) {
   for (const r of socket.rooms) {
     if (r !== socket.id) {
@@ -14,15 +16,13 @@ function socketLeaveAllRooms(socket) {
   }
 }
 
+// joueur rejoint une room après avoir quitté les autres
 function socketJoinRoom(socket, room) {
-  // drop from every other room
-  socketLeaveAllRooms(socket);
-
-  // join the new one
-  socket.join(room);
-  socket.emit("joined-room", room);
+  socketLeaveAllRooms(socket); //quitte toutes les rooms
+  socket.join(room); //rejoint la nouvelle room
+  socket.emit("joined-room", room); //confirme au joueur
   socket.to(room).emit("player-update", {
-    message: `User ${socket.id} joined ${room}`,
+    message: `User ${socket.id} joined ${room}`, //prévient les autres joueurs
   });
 }
 

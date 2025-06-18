@@ -5,6 +5,7 @@ const fetch = require("node-fetch");
 const MORPHER_URL = process.env.MORPHER_URL;
 console.log("MORPHER_URL", MORPHER_URL);
 
+// Fonction permettant d'appeler l'API Morpher et de générer 1 mix entre 2 portraits
 const getMorph = async (image1_path, image2_path) => {
   // cheking that files exist:
   if (!fs.existsSync(image1_path)) {
@@ -13,7 +14,7 @@ const getMorph = async (image1_path, image2_path) => {
   if (!fs.existsSync(image2_path)) {
     return { result: false, error: "File is missing", file: image2_path };
   }
-  // prepare the form data
+  // prepare the form data for CDN Cloudinary
   const form = new FormData();
   form.append("image1", fs.createReadStream(image1_path));
   form.append("image2", fs.createReadStream(image2_path));

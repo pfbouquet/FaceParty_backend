@@ -5,9 +5,10 @@ const {
   socketLeaveAllRooms,
   socketJoinRoom,
   socketLeaveRoom,
-} = require("../services/socketRoomManager");
+} = require("../services/socketRoomManager"); //gestion des rooms
 
 module.exports = (server) => {
+  // initialise le serveur socket.io avec CORS
   const io = socketIo(server, {
     cors: {
       origin: [
@@ -20,14 +21,16 @@ module.exports = (server) => {
     },
   });
 
+  // écoute des connexions socket
   io.on("connection", (socket) => {
     console.log("Client connected", socket.id);
     sockets(io, socket);
 
-    socket.on("disconnect", () => socketLeaveAllRooms(socket));
-    socket.on("leave-all-rooms", () => socketLeaveAllRooms(socket));
-    socket.on("leave-room", (roomID) => socketLeaveRoom(socket, roomID));
-    socket.on("join-room", (newRoomID) => socketJoinRoom(socket, newRoomID));
+    // écoute des événements socket
+    socket.on("disconnect", () => socketLeaveAllRooms(socket)); // auto leave
+    socket.on("leave-all-rooms", () => socketLeaveAllRooms(socket)); // leave toutes les rooms
+    socket.on("leave-room", (roomID) => socketLeaveRoom(socket, roomID)); // leave une room
+    socket.on("join-room", (newRoomID) => socketJoinRoom(socket, newRoomID)); // rejoint une room
   });
 
   // 🔐 Instrumentation pour l'interface admin

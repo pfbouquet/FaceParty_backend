@@ -1,7 +1,8 @@
-const { handleStartGame } = require("../services/gameService.js");
+const { handleStartGame } = require("../services/gameService.js"); // logique de préparation de la partie
 const Game = require("../database/models/Games");
 const Question = require("../database/models/Questions");
 
+// Envoie une question spécifique à tous les joueurs d'une room
 const sendQuestion = async (io, roomID, questionIndex) => {
   let gameData = await Game.findOne({ roomID: roomID });
 
@@ -16,13 +17,15 @@ const sendQuestion = async (io, roomID, questionIndex) => {
   });
 };
 
+// Logique principale de gestion des sockets
 const sockets = async (io, socket) => {
   ////////////////////////////////////////////////////////
   ////////////////////  lobby events   ///////////////////
   ////////////////////////////////////////////////////////
 
+  // Mise à jour des joueurs dans le lobby
   socket.on("player-update", (roomID) => {
-    setTimeout(() => {
+    setTimeout(() => { // léger délai pour s'assurer que la mise à jour côté DB est faite
       io.to(roomID).emit("player-update");
     }, 500);
   });
@@ -34,32 +37,37 @@ const sockets = async (io, socket) => {
   // lancement de la partie par l'admin
   socket.on("start-game", (roomID) => {
     setTimeout(async () => {
-      // Communicate entry in game preparation
+      // Informer tous les joueurs que la préparation du jeu commence
       io.to(roomID).emit("game-preparation");
-      // Prepare the game
+      // Appelle le service (du dossier "services") qui vérifie et prépare les questions de la partie
       await handleStartGame(roomID);
-      // Communicate that the game is ready, sending the first question
+      // Indique que la partie est prête et envoie la 1ère question
       sendQuestion(io, roomID, 0);
     }, 500);
   });
 
-  // passage d'un écran Question à un écran ScroeBoard par l'admin
+  // Gestion du cycle de jeu (navigation entre les écrans)
   socket.on("game-cycle", (data) => {
     setTimeout(() => {
+      // Aller vers l'écran des scores
       if (data.type == "go-scoreboard") {
         io.to(data.roomID).emit("game-cycle", { type: "go-scoreboard" });
-      } /* passage d'un écran Question à un écran ScroeBoard par l'admin*/
+      }
+      // Aller vers l'écran question à la fin du countdown
       if (data.type == "go-question") {
         io.to(data.roomID).emit("game-cycle", {
           type: "go-question",
-        }); //lancement de la question à la fin du countdown
+        });
       }
+      // Appelle la question suivante en récupérant la question à l'index+1
       if (data.type == "get-next-question") {
         sendQuestion(io, data.roomID, data.currentQuestionIndex + 1);
       }
+      // Retourner tous les joueurs au lobby
       if (data.type == "to-the-lobby") {
         io.to(data.roomID).emit("game-cycle", { type: "to-the-lobby" });
       }
+      // Passer à l'écran de podium (fin de partie)
       if (data.type == "to-podium") {
         io.to(data.roomID).emit("game-cycle", { type: "to-podium" });
       }

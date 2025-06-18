@@ -1,5 +1,5 @@
 const mongoose = require("mongoose");
-
+//schema collection characters (célébrités) dans MongoDB 
 const characterSchema = new mongoose.Schema({
   type: String,
   name: String,

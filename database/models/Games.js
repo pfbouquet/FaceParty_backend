@@ -1,20 +1,20 @@
 const mongoose = require("mongoose");
-
+//Schéma collection games dans MongoDB
 const gameSchema = new mongoose.Schema({
-  gameCreatedAtTime: { type: Date, required: true, unique: false },
-  roomID: { type: String, required: true, unique: true },
+  gameCreatedAtTime: { type: Date, required: true, unique: false }, //date pas forcément unique
+  roomID: { type: String, required: true, unique: true }, //requis et doit être unique
   type: { type: String, default: "multi" },
   players: [
     {
       type: mongoose.Types.ObjectId,
-      ref: "players",
+      ref: "players", //clé étrangère de la collection players
     },
   ],
   characters: {
     type: [
       {
         type: mongoose.Types.ObjectId,
-        ref: "characters",
+        ref: "characters", //clé étrangère de la collection characters
       },
     ],
     default: [],
@@ -23,9 +23,9 @@ const gameSchema = new mongoose.Schema({
   questions: [
     {
       type: mongoose.Types.ObjectId,
-      ref: "questions",
+      ref: "questions", //clé étrangère de la collection questions
     },
   ],
 });
 
-module.exports = mongoose.models.games || mongoose.model("games", gameSchema);
+module.exports = mongoose.models.games || mongoose.model("games", gameSchema); //si collection existe déjà il l'utilise sinon il la recréée

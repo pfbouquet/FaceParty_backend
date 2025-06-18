@@ -1,3 +1,4 @@
+// fonction permettant de s'assurer qu'un champs est correctement remplit
 function checkBody(body, keys) {
   let isValid = true;
 

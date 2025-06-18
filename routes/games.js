@@ -1,6 +1,5 @@
 var express = require("express");
 var router = express.Router();
-const uid2 = require("uid2");
 const { checkBody } = require("../modules/checkBody");
 const Game = require("../database/models/Games");
 const Player = require("../database/models/Players");
@@ -8,6 +7,7 @@ const Character = require("../database/models/Characters");
 const { socketJoinRoom } = require("../services/socketRoomManager");
 
 // Function to generate a new unique roomID
+// Génère code aléatoire 4 chiffres entre min et max, padding 0 (padding ajoute 0 avant si "0007")
 async function getNewRoomID() {
   function getRandomCode(min, max) {
     return String(min + Math.floor((max - min) * Math.random())).padStart(
@@ -25,13 +25,14 @@ async function getNewRoomID() {
     if (data === null) {
       roomIDExists = false;
     } else {
-      roomID = getRandomCode(0, 9999);
+      roomID = getRandomCode(0, 9999); //relance la fonction pour un nouveau code s'il existe déjà en BDD
     }
   }
   return roomID;
 }
 
 // GET games/:roomID
+// affiche toutes les données d'une partie en particulier
 router.get("/:roomID", async function (req, res, next) {
   if (!checkBody(req.params, ["roomID"])) {
     console.log("Missing some field in params.");
@@ -53,6 +54,7 @@ router.get("/:roomID", async function (req, res, next) {
 });
 
 // POST games/join
+// Permet à un joueur de rejoindre une partie
 router.post("/join", async function (req, res, next) {
   if (!checkBody(req.body, ["playerSocketID", "isAdmin", "roomID"])) {
     console.log("Missing some field in body.");
@@ -96,7 +98,7 @@ router.post("/join", async function (req, res, next) {
     return;
   }
 
-  // Connect player socket to game room
+  // Connect player socket to game roomID
   const io = await req.app.get("io");
   const playerSocket = io.sockets.sockets.get(playerData.socketID);
   if (playerSocket) {
@@ -122,6 +124,7 @@ router.post("/join", async function (req, res, next) {
 });
 
 // POST	games/create
+// Créé une nouvelle partie 
 router.post("/create", async function (req, res, next) {
   try {
     let roomID = await getNewRoomID();
@@ -129,12 +132,12 @@ router.post("/create", async function (req, res, next) {
     let newGame = new Game({
       gameCreatedAtTime: Date.now(),
       roomID: roomID,
-      type: "multi",
+      type: "multi", // Each game is "multi"
       nbRound: 6, // Default value to 6 to ease tests
     });
 
     if (req.body.nbRound) {
-      newGame.nbRound = req.body.nbRound;
+      newGame.nbRound = req.body.nbRound; // si on précise un nb de round ça va modifier le 6 par défaut
     }
     let gameData = await newGame.save();
 
@@ -235,13 +238,14 @@ router.post("/add-character", async function (req, res, next) {
       return;
     }
     // Get new available characters
-    let filters = {};
+    // Filtre les célébrités dispo (non présentes dans la partie)
+    let filters = {}; // pas de filtre pour le moment
     if (req.body.type) {
       filters.type = req.body.type;
     }
-    let characters = await Character.find(filters);
-    let gameCharacterIds = gameData.characters.map((id) => id.toString());
-    let charactersAvailable = characters.filter(
+    let characters = await Character.find(filters); // pas de filtre pour le moment
+    let gameCharacterIds = gameData.characters.map((id) => id.toString()); //récupère les charactersID
+    let charactersAvailable = characters.filter( // filtre les charactersID pour n'avoir que ceux pas encore présent
       (character) => !gameCharacterIds.includes(character._id.toString())
     );
     // Check if at least 1 new available character exists
@@ -289,6 +293,7 @@ router.post("/add-character", async function (req, res, next) {
 });
 
 // DELETE  games/kick-character
+// retire une célébrité ajouté dans le lobby
 router.delete("/kick-character", async function (req, res, next) {
   // Check body
   if (!checkBody(req.body, ["roomID", "characterID"])) {

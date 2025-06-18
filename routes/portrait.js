@@ -8,6 +8,7 @@ const fs = require("fs");
 const Player = require("../database/models/Players");
 const Character = require("../database/models/Characters");
 
+// POST /upload enregistre une image reçue + met à jour le portrait du joueur en BDD
 router.post("/upload", async (req, res) => {
   if (!req.files || !req.files.photoFromFront) {
     return res.status(400).json({ result: false, error: "No file uploaded" });
@@ -20,10 +21,10 @@ router.post("/upload", async (req, res) => {
     // Déplace le fichier dans le dossier tmp
     await req.files.photoFromFront.mv(photoPath);
 
-    // 🔧 Récupère l'ID du joueur depuis une query ou body
-    const playerID = req.body.playerID; // ou req.query.playerID
+    // Récupère l'ID du joueur
+    const playerID = req.body.playerID; 
 
-    // 🔧 Mets à jour le joueur dans MongoDB
+    // Mets à jour le portrait du joueur dans MongoDB
     const updateResult = await Player.updateOne(
       { _id: playerID },
       { portraitFilePath: photoName }
@@ -39,6 +40,7 @@ router.post("/upload", async (req, res) => {
   }
 });
 
+// GET /:type/:id renvoie le portrait d’un player ou character selon l’ID
 router.get("/:type/:id", async (req, res) => {
   if (!checkBody(req.params, ["type", "id"])) {
     console.log("Missing some field in params.");

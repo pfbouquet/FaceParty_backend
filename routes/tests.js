@@ -2,6 +2,7 @@ var express = require("express");
 var router = express.Router();
 const { getMorph } = require("../services/getMorph.js");
 const { handleStartGame } = require("../services/gameService.js");
+//TESTS du morpher >> HORS MVP >> API EXTERNE en Python
 
 /* GET /tests/testmorph */
 router.get("/testmorph", async function (req, res, next) {

@@ -4,6 +4,7 @@ const { checkBody } = require("../modules/checkBody");
 const Player = require("../database/models/Players");
 const Game = require("../database/models/Games");
 
+// GET players from à gameID
 router.get("/:gameID", (req, res) => {
   Game.findOne({ _id: req.params.gameID })
     .populate("players")
@@ -54,6 +55,7 @@ router.put("/updateName", async (req, res) => {
 });
 
 /* POST /players/update-admin */
+// permet de changer d'admin en cours de partie > pas encore fonctionnel
 router.post("/update-admin", async (req, res) => {
   if (!checkBody(req.body, ["roomID", "playerID", "isAdmin"])) {
     console.log("Missing some field in params.");
